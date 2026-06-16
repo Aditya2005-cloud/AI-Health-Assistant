@@ -90,14 +90,22 @@ MYSQL_DATABASE=ai_health_assistant
     mysql -u root -p < Backend/database/setup_database.sql
     ```
 
-### 3. Install Dependencies
-Activate your virtual environment and install the required Python libraries:
+### 3. Install Dependencies & Virtual Environment
+Create your virtual environment, activate it, and install the required Python libraries:
 
 ```bash
-# Activate Virtual Environment (Windows CMD)
-.venv\Scripts\activate.bat
+# 1. Create the virtual environment (Run this once)
+python -m venv .venv
 
-# Install Requirements
+# 2. Activate the virtual environment
+# On Windows (CMD):
+.venv\Scripts\activate.bat
+# On Windows (PowerShell):
+.venv\Scripts\Activate.ps1
+# On macOS/Linux:
+source .venv/bin/activate
+
+# 3. Install the required libraries
 pip install -r Backend/requirements.txt
 ```
 
