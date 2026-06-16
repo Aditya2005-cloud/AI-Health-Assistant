@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AI Health Assistant - Get preliminary health guidance powered by dual AI analysis">
+    <title>AI Health Assistant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- ========== NAVBAR ========== -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-brand">
+            <div class="brand-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                </svg>
+            </div>
+            <span class="brand-text">HealthAI</span>
+        </div>
+        <div class="nav-links">
+            <a href="#" class="nav-link active" data-page="home">Home</a>
+            <a href="#" class="nav-link" data-page="consult">Consult</a>
+            <a href="#" class="nav-link" data-page="history">History</a>
+            <a href="#" class="nav-link" data-page="medicines">Medicines</a>
+        </div>
+        <div class="nav-auth" id="nav-auth">
+            <button class="btn btn-ghost" id="btn-login-nav" onclick="showModal('login')">Login</button>
+            <button class="btn btn-primary" id="btn-register-nav" onclick="showModal('register')">Sign Up</button>
+        </div>
+        <div class="nav-user hidden" id="nav-user">
+            <span class="user-greeting" id="user-greeting"></span>
+            <button class="btn btn-ghost" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <!-- ========== HERO / HOME PAGE ========== -->
+    <section class="page active" id="page-home">
+        <div class="hero">
+            <div class="hero-glow"></div>
+            <div class="hero-content">
+                <div class="hero-badge">🩺 AI-Powered Health Guidance</div>
+                <h1 class="hero-title">Your Personal<br><span class="gradient-text">AI Health Assistant</span></h1>
+                <p class="hero-subtitle">Get preliminary health insights powered by dual AI analysis. Our system uses two AI models — one analyzes your symptoms, another validates the findings — for safer, more reliable guidance.</p>
+                <div class="hero-actions">
+                    <button class="btn btn-primary btn-lg" onclick="navigateTo('consult')">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        Start Consultation
+                    </button>
+                    <button class="btn btn-outline btn-lg" onclick="navigateTo('medicines')">Browse Medicines</button>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat"><span class="stat-value">2</span><span class="stat-label">AI Models</span></div>
+                    <div class="stat-divider"></div>
+                    <div class="stat"><span class="stat-value">20+</span><span class="stat-label">OTC Medicines</span></div>
+                    <div class="stat-divider"></div>
+                    <div class="stat"><span class="stat-value">24/7</span><span class="stat-label">Available</span></div>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="float-card card-1">
+                    <div class="float-icon">🧬</div>
+                    <span>Symptom Analysis</span>
+                </div>
+                <div class="float-card card-2">
+                    <div class="float-icon">🔬</div>
+                    <span>AI Validation</span>
+                </div>
+                <div class="float-card card-3">
+                    <div class="float-icon">💊</div>
+                    <span>Safe OTC Options</span>
+                </div>
+                <div class="pulse-ring"></div>
+                <div class="pulse-ring ring-2"></div>
+                <div class="dna-helix">
+                    <svg width="200" height="200" viewBox="0 0 200 200">
+                        <circle cx="100" cy="100" r="80" fill="none" stroke="url(#grad1)" stroke-width="1.5" stroke-dasharray="8 4" opacity="0.4"/>
+                        <circle cx="100" cy="100" r="60" fill="none" stroke="url(#grad1)" stroke-width="1" stroke-dasharray="4 6" opacity="0.3"/>
+                        <circle cx="100" cy="100" r="40" fill="none" stroke="url(#grad1)" stroke-width="0.8" opacity="0.2"/>
+                        <defs><linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#6366f1"/><stop offset="100%" style="stop-color:#06b6d4"/></linearGradient></defs>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        <!-- Features -->
+        <div class="features-section">
+            <h2 class="section-title">How It Works</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-step">1</div>
+                    <div class="feature-icon">📝</div>
+                    <h3>Describe Symptoms</h3>
+                    <p>Tell us what you're experiencing in detail — pain, duration, severity, and any other relevant information.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-step">2</div>
+                    <div class="feature-icon">🤖</div>
+                    <h3>AI Analysis</h3>
+                    <p>Gemini AI analyzes your symptoms, identifies possible conditions, and suggests safe OTC options available in India.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-step">3</div>
+                    <div class="feature-icon">👨‍⚕️</div>
+                    <h3>Doctor Validation</h3>
+                    <p>A second AI with clinical expertise reviews the analysis, removes unsafe advice, and validates the recommendations.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-step">4</div>
+                    <div class="feature-icon">📋</div>
+                    <h3>Final Report</h3>
+                    <p>Receive a comprehensive, validated health report with safe recommendations and guidance on when to see a doctor.</p>
+                </div>
+            </div>
+        </div>
+        <!-- Disclaimer -->
+        <div class="disclaimer-banner">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <p><strong>Important Disclaimer:</strong> This AI Health Assistant is an educational tool and NOT a substitute for professional medical advice. Always consult a licensed physician for diagnosis and treatment.</p>
+        </div>
+    </section>
+
+    <!-- ========== CONSULTATION PAGE ========== -->
+    <section class="page" id="page-consult">
+        <div class="consult-container">
+            <div class="consult-header">
+                <h1>AI Health <span class="gradient-text">Consultation</span></h1>
+                <p>Describe your symptoms in detail for accurate analysis</p>
+            </div>
+            <div class="consult-body">
+                <div class="input-panel">
+                    <div class="input-card glass-card">
+                        <h3>📋 Tell Us What's Wrong</h3>
+                        <div class="form-row" style="display: flex; gap: 16px; margin-bottom: 16px;">
+                            <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                                <label for="patient-age" style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 0.9rem;">Age:</label>
+                                <input type="number" id="patient-age" min="1" max="120" placeholder="e.g. 28" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text); outline: none; transition: border-color 0.2s;">
+                            </div>
+                            <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                                <label for="patient-gender" style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 0.9rem;">Gender:</label>
+                                <select id="patient-gender" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text); outline: none; transition: border-color 0.2s;">
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="symptoms-input">Describe your symptoms:</label>
+                            <textarea id="symptoms-input" rows="8" placeholder="Example: I have been having a severe headache for the past 2 days, mostly on the right side. I also feel nauseous and sensitive to light. I took paracetamol but it didn't help much..."></textarea>
+                        </div>
+                        <div class="quick-tags">
+                            <span class="tag" onclick="addTag('headache')">Headache</span>
+                            <span class="tag" onclick="addTag('fever')">Fever</span>
+                            <span class="tag" onclick="addTag('cough')">Cough</span>
+                            <span class="tag" onclick="addTag('body pain')">Body Pain</span>
+                            <span class="tag" onclick="addTag('stomach ache')">Stomach Ache</span>
+                            <span class="tag" onclick="addTag('cold')">Cold</span>
+                            <span class="tag" onclick="addTag('fatigue')">Fatigue</span>
+                            <span class="tag" onclick="addTag('nausea')">Nausea</span>
+                        </div>
+                        <button class="btn btn-primary btn-lg btn-full" id="btn-analyze" onclick="analyzeSymptoms()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                            Analyze My Symptoms
+                        </button>
+                    </div>
+                </div>
+                <!-- Results Panel -->
+                <div class="results-panel hidden" id="results-panel">
+                    <!-- Loading State -->
+                    <div class="loading-state" id="loading-state">
+                        <div class="loader-wrapper">
+                            <div class="dna-loader">
+                                <div class="strand strand-1"></div>
+                                <div class="strand strand-2"></div>
+                            </div>
+                        </div>
+                        <div class="loading-steps">
+                            <div class="load-step active" id="step-1">
+                                <div class="step-dot"></div>
+                                <span>Running primary symptom triage...</span>
+                            </div>
+                            <div class="load-step" id="step-2">
+                                <div class="step-dot"></div>
+                                <span>Performing validation and safety checks...</span>
+                            </div>
+                            <div class="load-step" id="step-3">
+                                <div class="step-dot"></div>
+                                <span>Generating clinical report...</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Report -->
+                    <div class="report hidden" id="report">
+                        <!-- Fallback Banner -->
+                        <div class="fallback-banner hidden" id="fallback-banner" style="background: rgba(234, 179, 8, 0.15); border: 1px solid var(--yellow); padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 0.95rem; line-height: 1.5; color: #fef08a;">
+                            ⚠️ <strong>System Resilience Active:</strong> Primary analyst server is currently under high load. Secondary clinical validation engine has successfully handled the consultation report.
+                        </div>
+                        <!-- Emergency Banner -->
+                        <div class="emergency-banner hidden" id="emergency-banner">
+                            🚨 <strong>EMERGENCY DETECTED</strong> — Please seek immediate medical attention or call emergency services!
+                        </div>
+                        <!-- Severity Badge -->
+                        <div class="severity-section" id="severity-section"></div>
+                        <!-- Consolidated Medical Board Report -->
+                        <div class="report-card glass-card" id="unified-report-card">
+                            <div class="report-card-header">
+                                <div class="ai-badge unified" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 20px; font-weight: 600; font-size: 0.85rem; color: #fff;">📋 Clinical Consultation Report</div>
+                            </div>
+                            <div class="report-card-body" id="unified-report-body"></div>
+                        </div>
+                        <!-- Actions -->
+                        <div class="report-actions">
+                            <button class="btn btn-outline" onclick="resetConsultation()">New Consultation</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== HISTORY PAGE ========== -->
+    <section class="page" id="page-history">
+        <div class="page-container">
+            <h1>Consultation <span class="gradient-text">History</span></h1>
+            <div class="login-prompt hidden" id="history-login-prompt">
+                <div class="glass-card text-center">
+                    <div style="font-size:3rem;margin-bottom:1rem;">🔐</div>
+                    <h3>Login Required</h3>
+                    <p>Please login to view your consultation history.</p>
+                    <button class="btn btn-primary" onclick="showModal('login')">Login</button>
+                </div>
+            </div>
+            <div class="history-list" id="history-list"></div>
+        </div>
+    </section>
+
+    <!-- ========== MEDICINES PAGE ========== -->
+    <section class="page" id="page-medicines">
+        <div class="page-container">
+            <h1>OTC Medicine <span class="gradient-text">Database</span></h1>
+            <p class="page-subtitle">Common over-the-counter medicines available in India</p>
+            <div class="search-bar">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <input type="text" id="medicine-search" placeholder="Search medicines..." oninput="searchMedicines()">
+            </div>
+            <div class="filter-tabs" id="medicine-filters">
+                <button class="filter-tab active" onclick="filterMedicines('')">All</button>
+                <button class="filter-tab" onclick="filterMedicines('Pain & Fever')">Pain & Fever</button>
+                <button class="filter-tab" onclick="filterMedicines('Cold & Cough')">Cold & Cough</button>
+                <button class="filter-tab" onclick="filterMedicines('Digestive')">Digestive</button>
+                <button class="filter-tab" onclick="filterMedicines('Allergy')">Allergy</button>
+                <button class="filter-tab" onclick="filterMedicines('Pain Relief')">Pain Relief</button>
+                <button class="filter-tab" onclick="filterMedicines('First Aid')">First Aid</button>
+            </div>
+            <div class="medicines-grid" id="medicines-grid"></div>
+        </div>
+    </section>
+
+    <!-- ========== AUTH MODAL ========== -->
+    <div class="modal-overlay hidden" id="modal-overlay" onclick="closeModal()">
+        <div class="modal glass-card" onclick="event.stopPropagation()">
+            <!-- Login Form -->
+            <div id="login-form">
+                <h2>Welcome Back</h2>
+                <p class="modal-subtitle">Login to your account</p>
+                <div class="form-group">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" placeholder="you@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" placeholder="••••••••">
+                </div>
+                <div class="form-error hidden" id="login-error"></div>
+                <button class="btn btn-primary btn-full" onclick="handleLogin()">Login</button>
+                <p class="modal-switch">Don't have an account? <a href="#" onclick="showModal('register')">Sign Up</a></p>
+            </div>
+            <!-- Register Form -->
+            <div id="register-form" class="hidden">
+                <h2>Create Account</h2>
+                <p class="modal-subtitle">Sign up for personalized consultations</p>
+                <div class="form-row">
+                    <div class="form-group"><label for="reg-name">Full Name *</label><input type="text" id="reg-name" placeholder="John Doe"></div>
+                    <div class="form-group"><label for="reg-email">Email *</label><input type="email" id="reg-email" placeholder="you@example.com"></div>
+                </div>
+                <div class="form-group"><label for="reg-password">Password *</label><input type="password" id="reg-password" placeholder="Min 6 characters"></div>
+                <div class="form-row">
+                    <div class="form-group"><label for="reg-age">Age</label><input type="number" id="reg-age" placeholder="25"></div>
+                    <div class="form-group"><label for="reg-gender">Gender</label><select id="reg-gender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div>
+                </div>
+                <div class="form-group"><label for="reg-conditions">Existing Conditions</label><input type="text" id="reg-conditions" placeholder="e.g., Diabetes, Hypertension"></div>
+                <div class="form-group"><label for="reg-allergies">Known Allergies</label><input type="text" id="reg-allergies" placeholder="e.g., Penicillin, Peanuts"></div>
+                <div class="form-error hidden" id="register-error"></div>
+                <button class="btn btn-primary btn-full" onclick="handleRegister()">Create Account</button>
+                <p class="modal-switch">Already have an account? <a href="#" onclick="showModal('login')">Login</a></p>
+            </div>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+    </div>
+
+    <!-- ========== TOAST ========== -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <footer class="footer">
+        <p>AI Health Assistant &copy; 2026 — For educational purposes only. Not a substitute for professional medical advice.</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
