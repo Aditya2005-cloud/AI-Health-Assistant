@@ -1,7 +1,4 @@
 """
-Database package - SQLAlchemy models and DB initialization.
+database/__init__.py
 """
-
-from database.models import db, User, Consultation, OTCMedicine
-
-__all__ = ["db", "User", "Consultation", "OTCMedicine"]
+from .models import db, User, Consultation, OTCMedicine

@@ -1,25 +1,76 @@
 /* ==========================================
-   AI Health Assistant - Frontend Logic
+   AI Health Assistant — Frontend Logic
+   Works with the Python Flask backend.
+   
+   Changes from v1:
+   - Stores JWT token from login/register
+   - Sends "Authorization: Bearer <token>" on protected API calls
+   - Redirects to login if token is missing or expired
+   - /api/consult now requires login (JWT protected)
+   - /api/history now uses JWT (no user_id in URL)
    ========================================== */
 
-const API = "";  // Same origin
+const API = "";  // Same origin — Flask serves both frontend and API
 
-// ========== STATE ==========
-let currentUser = null;
-let allMedicines = [];
+// ── App State ──────────────────────────────
+let currentUser = null;  // Logged-in user object
+let authToken   = null;  // JWT token
+let allMedicines = [];   // Cached medicine list
 
-// ========== INIT ==========
+// ── On Page Load ───────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
-    const saved = localStorage.getItem("healthai_user");
-    if (saved) {
-        currentUser = JSON.parse(saved);
+    // Restore session from localStorage (survives browser refresh)
+    const savedToken = localStorage.getItem("healthai_token");
+    const savedUser  = localStorage.getItem("healthai_user");
+
+    if (savedToken && savedUser) {
+        authToken   = savedToken;
+        currentUser = JSON.parse(savedUser);
         updateAuthUI();
+        // Silently verify the token is still valid
+        verifyToken();
     }
+
     setupNavigation();
     loadMedicines();
 });
 
-// ========== NAVIGATION ==========
+// ── JWT Helper ─────────────────────────────
+/** Build headers with JWT token for protected API calls. */
+function authHeaders() {
+    const headers = { "Content-Type": "application/json" };
+    if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
+    return headers;
+}
+
+/** Call /api/auth/profile to check if the saved token is still valid. */
+async function verifyToken() {
+    try {
+        const res = await fetch(API + "/api/auth/profile", { headers: authHeaders() });
+        if (!res.ok) {
+            // Token expired or invalid — clear session silently
+            clearSession();
+        } else {
+            const data = await res.json();
+            currentUser = data.user;
+            localStorage.setItem("healthai_user", JSON.stringify(currentUser));
+            updateAuthUI();
+        }
+    } catch {
+        // Network error — keep session as-is
+    }
+}
+
+/** Clear all auth state from memory and localStorage. */
+function clearSession() {
+    currentUser = null;
+    authToken   = null;
+    localStorage.removeItem("healthai_token");
+    localStorage.removeItem("healthai_user");
+    updateAuthUI();
+}
+
+// ── Navigation ─────────────────────────────
 function setupNavigation() {
     document.querySelectorAll(".nav-link").forEach(link => {
         link.addEventListener("click", e => {
@@ -30,91 +81,142 @@ function setupNavigation() {
 }
 
 function navigateTo(page) {
+    // Consult and History require login
+    const protectedPages = ["consult", "history"];
+    if (protectedPages.includes(page) && !currentUser) {
+        showToast("Please login to access this feature.", "error");
+        showModal("login");
+        return;
+    }
+
+    // Switch visible page
     document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
     document.querySelectorAll(".nav-link").forEach(l => l.classList.remove("active"));
-    const target = document.getElementById("page-" + page);
-    if (target) target.classList.add("active");
+
+    const target  = document.getElementById("page-" + page);
     const navLink = document.querySelector(`.nav-link[data-page="${page}"]`);
+    if (target)  target.classList.add("active");
     if (navLink) navLink.classList.add("active");
 
     if (page === "history") loadHistory();
     window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-// ========== AUTH ==========
+// ── Auth Modals ────────────────────────────
 function showModal(type) {
     document.getElementById("modal-overlay").classList.remove("hidden");
     document.getElementById("login-form").classList.toggle("hidden", type !== "login");
     document.getElementById("register-form").classList.toggle("hidden", type !== "register");
     document.querySelectorAll(".form-error").forEach(e => e.classList.add("hidden"));
 }
-function closeModal() { document.getElementById("modal-overlay").classList.add("hidden"); }
+function closeModal() {
+    document.getElementById("modal-overlay").classList.add("hidden");
+}
 
+// ── Login ──────────────────────────────────
 async function handleLogin() {
-    const email = document.getElementById("login-email").value.trim();
+    const email    = document.getElementById("login-email").value.trim();
     const password = document.getElementById("login-password").value;
+
     if (!email || !password) return showFormError("login-error", "All fields are required");
 
     try {
-        const res = await fetch(API + "/api/auth/login", {
-            method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password })
+        const res  = await fetch(API + "/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
         });
         const data = await res.json();
-        if (!res.ok) return showFormError("login-error", data.error);
+
+        if (!res.ok) return showFormError("login-error", data.error || "Login failed");
+
+        // Save token + user
+        authToken   = data.token;
         currentUser = data.user;
-        localStorage.setItem("healthai_user", JSON.stringify(currentUser));
+        localStorage.setItem("healthai_token", authToken);
+        localStorage.setItem("healthai_user",  JSON.stringify(currentUser));
+
         updateAuthUI();
         closeModal();
-        showToast("Welcome back, " + currentUser.full_name + "!", "success");
-    } catch { showFormError("login-error", "Connection error"); }
+        showToast("Welcome back, " + currentUser.full_name + "! 👋", "success");
+
+    } catch {
+        showFormError("login-error", "Connection error. Is the server running?");
+    }
 }
 
+// ── Register ───────────────────────────────
 async function handleRegister() {
-    const name = document.getElementById("reg-name").value.trim();
-    const email = document.getElementById("reg-email").value.trim();
+    const name     = document.getElementById("reg-name").value.trim();
+    const email    = document.getElementById("reg-email").value.trim();
     const password = document.getElementById("reg-password").value;
-    if (!name || !email || !password) return showFormError("register-error", "Name, email and password are required");
-    if (password.length < 6) return showFormError("register-error", "Password must be at least 6 characters");
+
+    if (!name || !email || !password)
+        return showFormError("register-error", "Name, email and password are required");
+    if (password.length < 8)
+        return showFormError("register-error", "Password must be at least 8 characters");
 
     const payload = {
-        full_name: name, email, password,
-        age: document.getElementById("reg-age").value || null,
-        gender: document.getElementById("reg-gender").value || null,
-        existing_conditions: document.getElementById("reg-conditions").value || null,
-        allergies: document.getElementById("reg-allergies").value || null,
+        full_name:          name,
+        email,
+        password,
+        age:                document.getElementById("reg-age").value || null,
+        gender:             document.getElementById("reg-gender").value || null,
+        medical_conditions: document.getElementById("reg-conditions").value || null,
+        known_allergies:    document.getElementById("reg-allergies").value || null,
     };
 
     try {
-        const res = await fetch(API + "/api/auth/register", {
-            method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
+        const res  = await fetch(API + "/api/auth/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
         });
         const data = await res.json();
-        if (!res.ok) return showFormError("register-error", data.error);
+
+        if (!res.ok) return showFormError("register-error", data.error || "Registration failed");
+
+        // Save token + user
+        authToken   = data.token;
         currentUser = data.user;
-        localStorage.setItem("healthai_user", JSON.stringify(currentUser));
+        localStorage.setItem("healthai_token", authToken);
+        localStorage.setItem("healthai_user",  JSON.stringify(currentUser));
+
         updateAuthUI();
         closeModal();
-        showToast("Account created successfully!", "success");
-    } catch { showFormError("register-error", "Connection error"); }
+        showToast("Account created! 🎉", "success");
+
+    } catch {
+        showFormError("register-error", "Connection error. Is the server running?");
+    }
 }
 
-function logout() {
-    currentUser = null;
-    localStorage.removeItem("healthai_user");
-    updateAuthUI();
+// ── Logout ─────────────────────────────────
+async function logout() {
+    if (authToken) {
+        // Tell the server (best practice, even though JWT is stateless)
+        try {
+            await fetch(API + "/api/auth/logout", {
+                method: "POST",
+                headers: authHeaders(),
+            });
+        } catch { /* ignore */ }
+    }
+    clearSession();
     navigateTo("home");
-    showToast("Logged out", "success");
+    showToast("Logged out successfully.", "success");
 }
 
+// ── Update navbar UI ───────────────────────
 function updateAuthUI() {
     const authDiv = document.getElementById("nav-auth");
     const userDiv = document.getElementById("nav-user");
+
     if (currentUser) {
         authDiv.classList.add("hidden");
         userDiv.classList.remove("hidden");
-        document.getElementById("user-greeting").textContent = "Hi, " + currentUser.full_name.split(" ")[0];
+        document.getElementById("user-greeting").textContent =
+            "Hi, " + currentUser.full_name.split(" ")[0];
     } else {
         authDiv.classList.remove("hidden");
         userDiv.classList.add("hidden");
@@ -127,7 +229,7 @@ function showFormError(id, msg) {
     el.classList.remove("hidden");
 }
 
-// ========== CONSULTATION ==========
+// ── Consultation ───────────────────────────
 function addTag(tag) {
     const ta = document.getElementById("symptoms-input");
     ta.value = ta.value ? ta.value + ", " + tag : tag;
@@ -135,29 +237,24 @@ function addTag(tag) {
 }
 
 async function analyzeSymptoms() {
-    const ageInput = document.getElementById("patient-age").value.trim();
-    const genderInput = document.getElementById("patient-gender").value;
+    // Must be logged in to consult
+    if (!currentUser) {
+        showToast("Please login to start a consultation.", "error");
+        showModal("login");
+        return;
+    }
+
     const symptoms = document.getElementById("symptoms-input").value.trim();
-
-    if (!ageInput || !genderInput) {
-        return showToast("Please specify your age and gender for accurate medical analysis.", "error");
-    }
-    if (!symptoms) {
-        return showToast("Please describe your symptoms", "error");
-    }
-
-    const age = parseInt(ageInput, 10);
-    if (isNaN(age) || age < 1 || age > 120) {
-        return showToast("Please enter a valid age between 1 and 120", "error");
-    }
+    if (!symptoms)        return showToast("Please describe your symptoms", "error");
+    if (symptoms.length < 10) return showToast("Please provide more detail (min 10 characters).", "error");
 
     const btn = document.getElementById("btn-analyze");
     btn.disabled = true;
     btn.innerHTML = "Analyzing...";
 
-    const panel = document.getElementById("results-panel");
+    const panel   = document.getElementById("results-panel");
     const loading = document.getElementById("loading-state");
-    const report = document.getElementById("report");
+    const report  = document.getElementById("report");
     panel.classList.remove("hidden");
     loading.classList.remove("hidden");
     report.classList.add("hidden");
@@ -166,20 +263,29 @@ async function analyzeSymptoms() {
     activateStep(1);
 
     try {
-        // Simulate step progression
         setTimeout(() => { completeStep(1); activateStep(2); }, 2000);
         setTimeout(() => { completeStep(2); activateStep(3); }, 5000);
 
+        // POST /api/consult — requires JWT
         const res = await fetch(API + "/api/consult", {
-            method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ 
-                symptoms, 
-                age, 
-                gender: genderInput,
-                user_id: currentUser?.id || null 
-            })
+            method: "POST",
+            headers: authHeaders(),
+            body: JSON.stringify({ symptoms }),  // patient profile is injected server-side
         });
+
+        if (res.status === 401) {
+            clearSession();
+            showToast("Session expired. Please login again.", "error");
+            showModal("login");
+            return;
+        }
+
         const data = await res.json();
+        if (!res.ok) {
+            showToast(data.error || "Consultation failed. Please try again.", "error");
+            loading.classList.add("hidden");
+            return;
+        }
 
         completeStep(3);
         setTimeout(() => {
@@ -187,6 +293,7 @@ async function analyzeSymptoms() {
             renderReport(data);
             report.classList.remove("hidden");
         }, 600);
+
     } catch (err) {
         showToast("Failed to analyze symptoms: " + err.message, "error");
         loading.classList.add("hidden");
@@ -202,197 +309,129 @@ function resetSteps() {
         if (el) el.classList.remove("active", "done");
     });
 }
-function activateStep(n) { 
+function activateStep(n) {
     const el = document.getElementById("step-" + n);
-    if (el) el.classList.add("active"); 
+    if (el) el.classList.add("active");
 }
 function completeStep(n) {
     const el = document.getElementById("step-" + n);
-    if (el) {
-        el.classList.remove("active");
-        el.classList.add("done");
-    }
+    if (el) { el.classList.remove("active"); el.classList.add("done"); }
 }
 
+// ── Render AI Report ───────────────────────
 function renderReport(data) {
-    // Fallback Banner
     const fBanner = document.getElementById("fallback-banner");
-    if (data.is_fallback) {
-        if (fBanner) fBanner.classList.remove("hidden");
-    } else {
-        if (fBanner) fBanner.classList.add("hidden");
-    }
+    if (data.is_fallback) fBanner?.classList.remove("hidden");
+    else fBanner?.classList.add("hidden");
 
-    // Emergency
     const eBanner = document.getElementById("emergency-banner");
     if (data.is_emergency) eBanner.classList.remove("hidden");
     else eBanner.classList.add("hidden");
 
-    // Severity
-    const sev = (data.severity || "Unknown").toLowerCase();
-    const sevSection = document.getElementById("severity-section");
-    const sevMap = { low: "severity-low", medium: "severity-medium", high: "severity-high", emergency: "severity-emergency" };
+    const sev     = (data.severity || "Unknown").toLowerCase();
+    const sevMap  = { low: "severity-low", medium: "severity-medium", high: "severity-high", emergency: "severity-emergency" };
     const sevIcons = { low: "🟢", medium: "🟡", high: "🟠", emergency: "🔴" };
-    sevSection.innerHTML = `<span class="severity-badge ${sevMap[sev] || ''}">${sevIcons[sev] || "⚪"} Severity: ${data.severity || "Unknown"}</span>`;
+    document.getElementById("severity-section").innerHTML =
+        `<span class="severity-badge ${sevMap[sev] || ''}">${sevIcons[sev] || "⚪"} Severity: ${data.severity || "Unknown"}</span>`;
 
-    // Unified Report Body
-    const urb = document.getElementById("unified-report-body");
-    urb.innerHTML = buildUnifiedReportHTML(data);
-
+    document.getElementById("unified-report-body").innerHTML = buildUnifiedReportHTML(data);
     document.getElementById("results-panel").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function buildUnifiedReportHTML(data) {
     let html = "";
     const g = data.gemini_response || {};
-    const q = data.groq_response || {};
+    const q = data.groq_response   || {};
 
-    // 1. Patient Case Presentation & Discussion Notes
-    const intake = g.junior_clinician_assessment || {};
-    const presentation = intake.presentation_summary || g.patient_summary;
-    if (presentation) {
-        html += sec("Patient Intake & Case Presentation", `<p>${presentation}</p>`);
-    }
+    // Patient summary
+    const summary = g.patient_summary || g.junior_clinician_assessment?.presentation_summary;
+    if (summary) html += sec("Patient Intake & Case Presentation", `<p>${summary}</p>`);
 
-    const discussion = q.clinical_discussion_notes || q.doctor_review;
-    if (discussion) {
-        html += sec("Clinical Board Assessment Notes", `
-            <div class="discussion-bubble" style="background: rgba(99, 102, 241, 0.08); border-left: 4px solid var(--primary); padding: 14px 18px; border-radius: 6px; font-style: italic; line-height: 1.6;">
-                <p>${discussion}</p>
+    // Clinical notes
+    const notes = q.clinical_discussion_notes || q.doctor_review;
+    if (notes) html += sec("Clinical Board Assessment Notes",
+        `<div style="background:rgba(99,102,241,.08);border-left:4px solid var(--primary);padding:14px 18px;border-radius:6px;font-style:italic;line-height:1.6;"><p>${notes}</p></div>`);
+
+    // Diagnoses
+    const diagnoses = q.validated_diagnoses || g.possible_causes || [];
+    if (diagnoses.length) html += sec("Provisional Diagnoses",
+        diagnoses.map(c => `<div style="margin-bottom:12px;padding:14px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid var(--border);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <span style="font-weight:600;font-size:1.05rem;">${c.condition}</span>
+                <span style="font-size:.85rem;padding:2px 8px;border-radius:12px;background:rgba(99,102,241,.2);color:var(--primary-light);font-weight:500;">
+                    ${c.confidence || c.probability || "Medium"}
+                </span>
             </div>
-        `);
-    }
+            <div style="font-size:.9rem;color:var(--text-muted);line-height:1.5;">${c.clinical_notes || c.reason || ""}</div>
+        </div>`).join(""));
 
-    // 2. Validated Differentials
-    const valDiagnoses = q.validated_diagnoses || q.validated_conditions;
-    if (valDiagnoses?.length) {
-        html += sec("Provisional Diagnoses", valDiagnoses.map(c =>
-            `<div class="condition-card" style="margin-bottom: 12px; padding: 14px; border-radius: 8px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border);">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
-                    <span class="cond-name" style="font-weight: 600; font-size: 1.05rem; color: var(--text);">${c.condition}</span> 
-                    <span class="cond-prob" style="font-size:0.85rem; padding: 2px 8px; border-radius: 12px; background: rgba(99,102,241,0.2); color: var(--primary-light); font-weight: 500;">Confidence: ${c.confidence || c.probability || "Medium"}</span>
-                </div>
-                <div class="cond-reason" style="font-size:0.9rem; color: var(--text-muted); line-height: 1.5;">${c.clinical_notes || c.reason || c.rationale || ""}</div>
-            </div>`
-        ).join(""));
-    }
-
-    // 3. Attending's Final Treatment Protocol
-    const attendingPlan = q.attending_treatment_plan || q.approved_treatment_plan;
-    if (attendingPlan) {
+    // Treatment plan
+    const plan = q.attending_treatment_plan || q.approved_treatment_plan || g.recommended_actions;
+    if (plan) {
         let planHtml = "";
-        
-        // Proposed Rest Plan
-        if (attendingPlan.bed_rest_routine) {
-            planHtml += `
-                <div class="protocol-section" style="margin-bottom: 18px;">
-                    <h5 style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px; font-size: 1rem; color: var(--text); font-weight: 600;">
-                        <span>🛏️</span> Recommended Rest & Activity Routine
-                    </h5>
-                    <p style="line-height: 1.6; color: var(--text-muted); font-size: 0.95rem;">${attendingPlan.bed_rest_routine}</p>
-                </div>
-            `;
-        }
 
-        // Proposed Diet Plan
-        if (attendingPlan.diet_and_hydration) {
-            planHtml += `
-                <div class="protocol-section" style="margin-bottom: 18px;">
-                    <h5 style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px; font-size: 1rem; color: var(--text); font-weight: 600;">
-                        <span>🍵</span> Recommended Diet & Hydration Plan
-                    </h5>
-                    <p style="line-height: 1.6; color: var(--text-muted); font-size: 0.95rem;">${attendingPlan.diet_and_hydration}</p>
-                </div>
-            `;
-        }
+        const rest = plan.bed_rest_routine || plan.rest;
+        if (rest) planHtml += block("🛏️ Rest & Activity", rest);
 
-        // What NOT to Do (Avoidances / Contraindications)
-        const avoidList = attendingPlan.things_to_avoid || (intake.proposed_treatment && intake.proposed_treatment.things_to_avoid);
-        if (avoidList) {
-            planHtml += `
-                <div class="protocol-section" style="margin-bottom: 18px; padding: 14px; border-radius: 8px; background: rgba(239, 68, 68, 0.06); border: 1px solid rgba(239, 68, 68, 0.2);">
-                    <h5 style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px; font-size: 1rem; color: #fca5a5; font-weight: 600;">
-                        <span>🚫</span> Important Contraindications & Avoidances (What NOT to Do)
-                    </h5>
-                    <p style="line-height: 1.6; color: #fcd34d; font-size: 0.95rem; font-weight: 500;">${avoidList}</p>
-                </div>
-            `;
-        }
+        const diet = plan.diet_and_hydration || plan.diet_hydration;
+        if (diet) planHtml += block("🍵 Diet & Hydration", diet);
 
-        // Proposed OTC Medicines
-        if (attendingPlan.approved_otc_medicines?.length) {
-            planHtml += `
-                <div class="protocol-section" style="margin-bottom: 18px;">
-                    <h5 style="margin-bottom: 10px; font-size: 1rem; color: var(--text); font-weight: 600;">💊 Approved OTC Medicines (India Whitelist)</h5>
-                    <div style="display: flex; flex-direction: column; gap: 10px;">
-            ` + attendingPlan.approved_otc_medicines.map(m => {
-                if (typeof m === "string") return `<div class="medicine-pill" style="padding: 10px 14px; border-radius: 6px; background: rgba(16,185,129,0.08); border-left: 3px solid #10b981;"><span class="med-name" style="font-weight:600; color:#34d399;">✅ ${m}</span></div>`;
-                return `
-                    <div class="medicine-pill" style="padding: 12px 16px; border-radius: 6px; background: rgba(16,185,129,0.06); border-left: 4px solid #10b981; margin-bottom: 4px;">
-                        <div style="font-weight: 600; color: #34d399; font-size: 1rem; margin-bottom: 4px;">✅ ${m.medicine_name}</div>
-                        <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 4px;"><strong>Purpose:</strong> ${m.purpose || ""}</div>
-                        ${m.clinical_justification ? `<div style="font-size: 0.85rem; color: var(--text-muted); font-style: italic; border-top: 1px dashed rgba(255,255,255,0.08); padding-top: 4px; margin-top: 4px;">🩺 Clinical Justification: ${m.clinical_justification}</div>` : ""}
-                    </div>
-                `;
-            }).join("") + `
-                    </div>
-                </div>
-            `;
-        }
+        const avoid = plan.things_to_avoid;
+        if (avoid) planHtml += `<div style="margin-bottom:18px;padding:14px;border-radius:8px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);">
+            <h5 style="margin-bottom:8px;color:#fca5a5;font-weight:600;">🚫 Contraindications & Avoidances</h5>
+            <p style="color:#fcd34d;font-size:.95rem;line-height:1.6;">${avoid}</p>
+        </div>`;
 
-        // Additional Self-care guidelines
-        const selfCare = attendingPlan.additional_care_guidelines || attendingPlan.other_approved_self_care;
-        if (selfCare?.length) {
-            planHtml += `
-                <div class="protocol-section">
-                    <h5 style="margin-bottom: 8px; font-size: 1rem; color: var(--text); font-weight: 600;">📋 Practical Care Guidelines</h5>
-                    <ul style="padding-left: 20px; line-height: 1.6; color: var(--text-muted); font-size: 0.95rem;">
-                        ${selfCare.map(s => `<li>${s}</li>`).join("")}
-                    </ul>
-                </div>
-            `;
-        }
+        const meds = plan.approved_otc_medicines || plan.otc_medicines || [];
+        if (meds.length) planHtml += `<div style="margin-bottom:18px;">
+            <h5 style="margin-bottom:10px;font-weight:600;">💊 Approved OTC Medicines</h5>
+            <div style="display:flex;flex-direction:column;gap:10px;">` +
+            meds.map(m => {
+                if (typeof m === "string") return `<div style="padding:10px 14px;border-radius:6px;background:rgba(16,185,129,.08);border-left:3px solid #10b981;">✅ <strong style="color:#34d399;">${m}</strong></div>`;
+                return `<div style="padding:12px 16px;border-radius:6px;background:rgba(16,185,129,.06);border-left:4px solid #10b981;">
+                    <div style="font-weight:600;color:#34d399;margin-bottom:4px;">✅ ${m.medicine_name || m.name}</div>
+                    ${m.purpose  ? `<div style="font-size:.9rem;color:var(--text-muted);">Purpose: ${m.purpose}</div>` : ""}
+                    ${m.dosage   ? `<div style="font-size:.85rem;color:var(--text-muted);">📋 ${m.dosage}</div>` : ""}
+                    ${m.warning  ? `<div style="font-size:.82rem;color:#fcd34d;margin-top:4px;">⚠ ${m.warning}</div>` : ""}
+                </div>`;
+            }).join("") + `</div></div>`;
+
+        const care = plan.additional_care_guidelines || plan.home_remedies || [];
+        if (care.length) planHtml += `<div>
+            <h5 style="margin-bottom:8px;font-weight:600;">📋 Practical Care Guidelines</h5>
+            <ul style="padding-left:20px;line-height:1.6;color:var(--text-muted);font-size:.95rem;">
+                ${care.map(s => `<li>${s}</li>`).join("")}
+            </ul>
+        </div>`;
 
         html += sec("Consolidated Treatment Protocol", planHtml);
     }
 
-    // 4. Red Flags & Warning Signs
-    const flags = q.red_flags || g.when_to_seek_care || g.when_to_see_doctor;
+    // Red flags
+    const flags = q.red_flags || g.red_flags;
     if (flags) {
-        let flagsHtml = "";
-        if (Array.isArray(flags)) {
-            flagsHtml = flags.map(r => `<div class="red-flag" style="margin-bottom: 8px; padding: 12px; border-radius: 6px; background: rgba(239, 68, 68, 0.08); border-left: 4px solid var(--red); color: #fca5a5; font-size: 0.95rem; font-weight: 500;">⚠ ${r}</div>`).join("");
-        } else {
-            flagsHtml = `<div class="red-flag" style="padding: 12px; border-radius: 6px; background: rgba(239, 68, 68, 0.08); border-left: 4px solid var(--red); color: #fca5a5; font-size: 0.95rem; font-weight: 500;">⚠ ${flags}</div>`;
-        }
-        html += sec("⚠️ Critical Warning Signs (Red Flags)", flagsHtml);
+        const list = Array.isArray(flags) ? flags : [flags];
+        html += sec("⚠️ Critical Warning Signs",
+            list.map(r => `<div style="margin-bottom:8px;padding:12px;border-radius:6px;background:rgba(239,68,68,.08);border-left:4px solid var(--red);color:#fca5a5;font-size:.95rem;">⚠ ${r}</div>`).join(""));
     }
 
-    // 5. Urgent Advice & Referral
+    // Doctor recommendation
     const rec = q.doctor_recommendation || g.when_to_see_doctor;
-    const attention = q.seek_medical_attention || g.when_to_seek_care;
-    if (rec || attention) {
-        let recHtml = "";
-        if (rec) recHtml += `<p style="line-height: 1.6; font-size: 0.95rem; margin-bottom: 8px;"><strong>Referral:</strong> ${rec}</p>`;
-        if (attention) recHtml += `<p style="line-height: 1.6; font-size: 0.95rem; color: var(--yellow); font-weight: 500;"><strong>Follow-up:</strong> ${attention}</p>`;
-        html += sec("Urgency & Follow-up Guidance", recHtml);
-    }
+    if (rec) html += sec("Urgency & Follow-up", `<p style="line-height:1.6;font-size:.95rem;">${rec}</p>`);
 
     // Disclaimer
-    const disclaimer = q.final_disclaimer || g.disclaimer || "This consultation provides educational guidance and is not a substitute for in-person evaluation by a licensed healthcare provider.";
-    html += `<p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 18px; font-style: italic; border-top: 1px solid var(--border); padding-top: 12px;">⚕️ ${disclaimer}</p>`;
-
-    if (g.error || q.error) {
-        html += `<p style="color:var(--red); font-weight:600; margin-top: 10px;">Error: ${g.message || q.message || "Consultation completed with warnings."}</p>`;
-    }
+    const disclaimer = q.final_disclaimer || g.disclaimer ||
+        "This consultation provides educational guidance and is not a substitute for professional medical advice.";
+    html += `<p style="font-size:.8rem;color:var(--text-muted);margin-top:18px;font-style:italic;border-top:1px solid var(--border);padding-top:12px;">⚕️ ${disclaimer}</p>`;
 
     return html;
 }
 
-function buildGroqHTML(q) { return ""; }
-
 function sec(title, content) {
     return `<div class="report-section"><h4>${title}</h4>${content}</div>`;
+}
+function block(title, text) {
+    return `<div style="margin-bottom:18px;"><h5 style="margin-bottom:8px;font-weight:600;">${title}</h5><p style="line-height:1.6;color:var(--text-muted);font-size:.95rem;">${text}</p></div>`;
 }
 
 function resetConsultation() {
@@ -403,63 +442,82 @@ function resetConsultation() {
     resetSteps();
 }
 
-// ========== HISTORY ==========
+// ── History ────────────────────────────────
 async function loadHistory() {
     const prompt = document.getElementById("history-login-prompt");
-    const list = document.getElementById("history-list");
+    const list   = document.getElementById("history-list");
+
     if (!currentUser) {
         prompt.classList.remove("hidden");
         list.innerHTML = "";
         return;
     }
     prompt.classList.add("hidden");
+    list.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text-muted);">Loading…</div>`;
+
     try {
-        const res = await fetch(API + "/api/consultations/" + currentUser.id);
+        // GET /api/history — JWT required
+        const res = await fetch(API + "/api/history", { headers: authHeaders() });
+
+        if (res.status === 401) {
+            clearSession();
+            showToast("Session expired. Please login again.", "error");
+            showModal("login");
+            return;
+        }
+
         const data = await res.json();
+
         if (!data.consultations?.length) {
             list.innerHTML = `<div class="glass-card text-center"><p style="color:var(--text-muted);">No consultations yet. Start your first consultation!</p></div>`;
             return;
         }
+
         list.innerHTML = data.consultations.map(c => {
-            const date = new Date(c.created_at).toLocaleString();
+            const date    = new Date(c.created_at).toLocaleString();
             const sevClass = (c.severity || "").toLowerCase();
+            const preview  = (c.symptoms_input || "").substring(0, 150);
             return `<div class="history-card" onclick="viewConsultation(${c.id})">
                 <div class="hc-top">
-                    <span class="severity-badge severity-${sevClass}">${c.severity || "N/A"}</span>
+                    <span class="severity-badge severity-${sevClass}">${c.severity || "Low"}</span>
                     <span class="hc-date">${date}</span>
                 </div>
-                <p class="hc-symptoms">${c.symptoms_input.substring(0, 150)}${c.symptoms_input.length > 150 ? "..." : ""}</p>
+                <p class="hc-symptoms">${preview}${preview.length >= 150 ? "…" : ""}</p>
             </div>`;
         }).join("");
-    } catch { list.innerHTML = `<p style="color:var(--red)">Failed to load history.</p>`; }
+
+    } catch {
+        list.innerHTML = `<p style="color:var(--red)">Failed to load history.</p>`;
+    }
 }
 
 async function viewConsultation(id) {
     try {
-        const res = await fetch(API + "/api/consultation/" + id);
+        const res  = await fetch(API + "/api/history/" + id, { headers: authHeaders() });
         const data = await res.json();
         if (data.consultation) {
             navigateTo("consult");
             const c = data.consultation;
             document.getElementById("symptoms-input").value = c.symptoms_input;
-            const panel = document.getElementById("results-panel");
-            const loading = document.getElementById("loading-state");
-            const report = document.getElementById("report");
-            panel.classList.remove("hidden");
-            loading.classList.add("hidden");
-            report.classList.remove("hidden");
+            document.getElementById("results-panel").classList.remove("hidden");
+            document.getElementById("loading-state").classList.add("hidden");
+            document.getElementById("report").classList.remove("hidden");
             renderReport({
-                severity: c.severity, is_emergency: c.is_emergency,
-                gemini_response: c.gemini_analysis, groq_response: c.groq_validation
+                severity:        c.severity,
+                is_emergency:    c.is_emergency,
+                gemini_response: c.gemini_analysis,
+                groq_response:   c.groq_validation,
             });
         }
-    } catch { showToast("Failed to load consultation", "error"); }
+    } catch {
+        showToast("Failed to load consultation", "error");
+    }
 }
 
-// ========== MEDICINES ==========
+// ── Medicines ──────────────────────────────
 async function loadMedicines() {
     try {
-        const res = await fetch(API + "/api/medicines");
+        const res  = await fetch(API + "/api/medicines", { headers: authHeaders() });
         const data = await res.json();
         allMedicines = data.medicines || [];
         renderMedicines(allMedicines);
@@ -475,11 +533,14 @@ function renderMedicines(meds) {
     grid.innerHTML = meds.map(m => `
         <div class="med-card">
             <span class="category-tag">${m.category || "General"}</span>
+            ${m.conflict_warning
+                ? `<div style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.4);padding:6px 10px;border-radius:6px;font-size:.8rem;color:#fca5a5;margin-bottom:8px;">⚠ ${m.conflict_warning}</div>`
+                : ""}
             <h4>${m.name}</h4>
             <div class="generic">${m.generic_name || ""}</div>
             <div class="purpose">${m.purpose || ""}</div>
             <div class="dosage">📋 ${m.common_dosage || "N/A"}</div>
-            ${m.warnings ? `<div class="warning">⚠ ${m.warnings}</div>` : ""}
+            ${m.warnings   ? `<div class="warning">⚠ ${m.warnings}</div>` : ""}
             ${m.price_range ? `<span class="price">${m.price_range}</span>` : ""}
         </div>
     `).join("");
@@ -488,24 +549,26 @@ function renderMedicines(meds) {
 function filterMedicines(cat) {
     document.querySelectorAll(".filter-tab").forEach(t => t.classList.remove("active"));
     event.target.classList.add("active");
-    const filtered = cat ? allMedicines.filter(m => m.category === cat) : allMedicines;
-    renderMedicines(filtered);
+    renderMedicines(cat ? allMedicines.filter(m => m.category === cat) : allMedicines);
 }
 
 function searchMedicines() {
-    const q = document.getElementById("medicine-search").value.toLowerCase();
+    const q        = document.getElementById("medicine-search").value.toLowerCase();
     const filtered = allMedicines.filter(m =>
         m.name.toLowerCase().includes(q) || (m.generic_name || "").toLowerCase().includes(q)
     );
     renderMedicines(filtered);
 }
 
-// ========== TOAST ==========
+// ── Toast Notifications ────────────────────
 function showToast(msg, type = "success") {
     const container = document.getElementById("toast-container");
-    const toast = document.createElement("div");
+    const toast     = document.createElement("div");
     toast.className = "toast " + type;
     toast.textContent = msg;
     container.appendChild(toast);
-    setTimeout(() => { toast.style.opacity = "0"; setTimeout(() => toast.remove(), 300); }, 3500);
+    setTimeout(() => {
+        toast.style.opacity = "0";
+        setTimeout(() => toast.remove(), 300);
+    }, 3500);
 }
