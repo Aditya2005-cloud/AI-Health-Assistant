@@ -18,6 +18,20 @@ from flask import Blueprint, request, jsonify
 from database import db, User, Consultation
 from services import ai_doctor_pipeline
 from middleware import jwt_required
+import logging
+
+logger = logging.getLogger(__name__)
+
+# ── Email service (fire-and-forget after AI assessment) ──────────────────────
+try:
+    from g_mail_user import dispatch_consultation_email
+    EMAIL_SERVICE_AVAILABLE = True
+except ImportError:
+    EMAIL_SERVICE_AVAILABLE = False
+    logger.warning(
+        "[ConsultRoutes] g_mail_user package not found. "
+        "Consultation emails will be disabled."
+    )
 
 consult_bp = Blueprint("consult", __name__)
 
@@ -135,6 +149,28 @@ def consult(current_user):
     db.session.add(consultation)
     db.session.commit()
     result["consultation_id"] = consultation.id
+
+    # ── Send consultation summary email (background thread) ──────────────────
+    # This runs in a daemon thread — it never blocks or breaks the API response.
+    if EMAIL_SERVICE_AVAILABLE and current_user.email:
+        try:
+            dispatch_consultation_email(
+                patient_name         = current_user.full_name,
+                age                  = current_user.age,
+                gender               = current_user.gender,
+                symptoms_description = symptoms,
+                symptom_tags         = result.get("severity", ""),
+                medical_history      = current_user.medical_conditions,
+                allergies            = current_user.known_allergies,
+                ai_assessment        = result.get("groq_response") or result.get("gemini_response"),
+                user_email           = current_user.email,
+                background           = True,   # fire-and-forget
+            )
+        except Exception as email_err:
+            # Email failure must NEVER break the consultation response
+            logger.warning(
+                "[ConsultRoutes] Email dispatch failed (non-critical): %s", email_err
+            )
 
     return jsonify(result), 200
 
