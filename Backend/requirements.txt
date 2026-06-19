@@ -1,10 +1,72 @@
+# ==============================================================
+# AI Health Assistant — Python Dependencies
+# ==============================================================
+# Install all with:  pip install -r requirements.txt
+# ==============================================================
+
+# ── Web Framework ───────────────────────────────────────────────
 flask==3.1.1
+# Flask: Lightweight WSGI web framework. Powers all HTTP routes,
+# blueprint-based routing, and serves the frontend static files.
+
 flask-cors==6.0.5
+# Flask-CORS: Adds Cross-Origin Resource Sharing headers so the
+# browser frontend can call the /api/* endpoints without being
+# blocked by the same-origin policy.
+
 flask-sqlalchemy==3.1.1
+# Flask-SQLAlchemy: ORM (Object-Relational Mapper) that lets us
+# define database tables as Python classes (models.py) and query
+# them with Python instead of raw SQL strings.
+
+# ── Database Driver ─────────────────────────────────────────────
 mysql-connector-python==9.7.0
+# MySQL Connector: Official MySQL driver for Python. SQLAlchemy
+# uses this under the hood to open connections, run queries, and
+# commit transactions to the MySQL database.
+
+# ── Configuration & Security ────────────────────────────────────
 python-dotenv==1.2.2
-google-genai>=0.1.0
-groq==1.4.0
+# python-dotenv: Reads the Backend/.env file and loads all
+# key=value pairs as environment variables so no secrets are
+# ever hardcoded in source code.
+
 werkzeug==3.1.3
+# Werkzeug: WSGI utility library used by Flask internally.
+# Provides request/response objects, routing helpers, and the
+# development server. Pinned to avoid breaking Flask API changes.
+
 PyJWT==2.8.0
+# PyJWT: Encodes and decodes JSON Web Tokens (JWT). Every
+# protected API endpoint (consult, history, profile) requires
+# a valid JWT in the Authorization header. This library creates
+# and verifies those tokens using the JWT_SECRET_KEY from .env.
+
 bcrypt==4.1.3
+# bcrypt: Industry-standard password hashing algorithm. All user
+# passwords are hashed with bcrypt before being stored in MySQL —
+# plain-text passwords are NEVER saved anywhere in this project.
+
+# ── AI APIs ─────────────────────────────────────────────────────
+google-genai>=0.1.0
+# google-genai: Official Google GenAI SDK for Gemini 2.0 Flash.
+# Used in Stage 1 of the dual-AI pipeline (Resident Clinician).
+# Supports both the new google-genai and legacy google-generativeai
+# SDK via dynamic import fallback in ai_service.py.
+
+groq==1.4.0
+# groq: Official Groq SDK for Llama-3.3-70B inference.
+# Used in Stage 2 (Senior Consultant Validator) and as the
+# automatic fallback analyst when Gemini is rate-limited (429).
+
+# ── Email Service ───────────────────────────────────────────────
+# The g_mail_user package sends HTML consultation emails using
+# Python's BUILT-IN standard library modules — no extra install:
+#
+#   smtplib   — opens SMTP connection to smtp.gmail.com:587
+#   email     — builds MIME multipart messages (HTML + plain text)
+#   threading — runs email delivery in a background daemon thread
+#               so the API response returns instantly to the user
+#
+# Authentication uses Gmail App Passwords (16-char code), NOT
+# the regular Gmail account password. See README.md for setup.
