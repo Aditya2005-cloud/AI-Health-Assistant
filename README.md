@@ -66,6 +66,13 @@ After every AI consultation, a professionally formatted plain-text email is auto
 
 Emails are sent in a **background daemon thread** — the consultation response returns to the frontend instantly without waiting for delivery.
 
+### 🔔 Free Multi-Channel Notification & Reminders
+A completely free, custom-built notification infrastructure (no Twilio required):
+- **Medicine Scheduler**: A background `APScheduler` loop constantly polls for active medicine reminders and triggers dispatches.
+- **Interactive Browser Alerts**: Using the HTML5 Web Notifications API, it triggers native desktop popups when a reminder fires. Falls back elegantly to in-app Toast messages if permissions are blocked.
+- **Dashboard History**: All alerts are logged into a permanent MySQL `dashboard_notifications` table, viewable via the Reminders Dashboard UI.
+
+
 ### 🔐 Secure Authentication
 - JWT (JSON Web Token) based login — stateless, scalable
 - Passwords hashed with `bcrypt` (never stored in plain text)
@@ -147,41 +154,49 @@ Every consultation is saved to MySQL with:
 Medivio/
 │
 ├── Backend/
-│   ├── app.py                    # Flask app factory, DB auto-create, OTC seeding
-│   ├── config.py                 # Central config loader (reads all env vars)
-│   ├── requirements.txt          # Python dependencies
-│   ├── .env.example              # Template — copy to .env and fill in values
+│   ├── app.py                      # Flask Application Factory and Startup Server
+│   ├── config.py                   # Configuration and Environment variable loader
+│   ├── requirements.txt            # Python Dependencies list
+│   ├── .env.example                # Configuration template
+│   ├── test_backend.py             # Integration test suite
 │   │
 │   ├── database/
-│   │   ├── __init__.py           # Exports db, User, Consultation, OTCMedicine
-│   │   ├── models.py             # SQLAlchemy ORM models
-│   │   └── setup_database.sql    # Optional manual DB setup script
-│   │
-│   ├── routes/
-│   │   ├── __init__.py           # Blueprint registry
-│   │   ├── auth_routes.py        # POST /api/register, POST /api/login, GET /api/profile
-│   │   ├── consult_routes.py     # POST /api/consult, GET /api/history
-│   │   └── medicine_routes.py    # GET /api/medicines
-│   │
-│   ├── services/
-│   │   ├── __init__.py           # Exports ai_doctor_pipeline
-│   │   └── ai_service.py         # Dual-AI pipeline + Gemini/Groq API calls
-│   │
-│   ├── prompts/
-│   │   ├── __init__.py           # Exports GEMINI_SYSTEM_PROMPT, GROQ_SYSTEM_PROMPT
-│   │   ├── gemini_prompt.py      # Resident Clinician system prompt
-│   │   └── groq_prompt.py        # Senior Consultant system prompt
+│   │   ├── __init__.py             # Exposes models & db session
+│   │   ├── models.py               # SQLAlchemy Database Models (Users, Reminders, Notifications)
+│   │   └── migration_medicine_reminders.sql   # SQL migration scripts
 │   │
 │   ├── middleware/
-│   │   ├── __init__.py           # Exports jwt_required decorator
-│   │   └── auth_middleware.py    # JWT verification middleware
+│   │   ├── __init__.py
+│   │   └── user_authentication_middleware.py  # JWT validation decorator
 │   │
-│   └── g_mail_user/              # Gmail email service package
-│       ├── __init__.py           # Exports dispatch_consultation_email
-│       ├── config.py             # Loads GMAIL_* env vars
-│       ├── email_template.py     # Generates all 12 email sections
-│       ├── gmail_sender.py       # SMTP sender (TLS/SSL + 3-retry backoff)
-│       └── email_service.py      # Orchestrator + background thread
+│   ├── prompts/
+│   │   ├── __init__.py
+│   │   ├── gemini_diagnostic_prompt.py        # Stage 1 Resident Intake prompt
+│   │   └── groq_validation_prompt.py          # Stage 2 Senior Consultant validation prompt
+│   │
+│   ├── routes/
+│   │   ├── __init__.py             # Blueprint assembly registry
+│   │   ├── clinical_consultation_routes.py # AI doctor consultations
+│   │   ├── medicine_interaction_routes.py  # Medicine search and query filters
+│   │   ├── medicine_reminder.py    # CRUD scheduler configurations
+│   │   ├── notification.py         # Read/unread status history fetchers
+│   │   └── user_authentication_routes.py   # JWT registration and logins
+│   │
+│   ├── email_notification_service/
+│   │   ├── __init__.py
+│   │   ├── config.py
+│   │   ├── email_service.py
+│   │   ├── email_template.py
+│   │   └── gmail_sender.py
+│   │
+│   └── services/
+│       ├── __init__.py
+│       ├── artificial_intelligence_diagnostic_service.py # Dual-model clinical pipeline
+│       ├── browser_notification_service.py               # Browser push content providers
+│       ├── dashboard_notification_service.py             # Database notification writes
+│       ├── medicine_marketplace_service.py               # Local OTC catalog seeding
+│       ├── medicine_reminder_scheduler.py               # Background scheduler loop
+│       └── notification_service.py                       # Unified notifier coordinator
 │
 ├── frontend/
 │   ├── index.html                # Single-page application shell
