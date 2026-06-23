@@ -3,10 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="AI Health Assistant - Get preliminary health guidance powered by dual AI analysis">
-    <title>AI Health Assistant</title>
+    <meta name="description" content="Medivio - Get preliminary health guidance powered by dual AI analysis">
+    <title>Medivio</title>
+    <link rel="icon" type="image/png" href="/assets/logo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -14,17 +16,16 @@
     <nav class="navbar" id="navbar">
         <div class="nav-brand">
             <div class="brand-icon">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-                </svg>
+                <img src="/assets/logo.png" alt="Medivio logo" class="brand-logo">
             </div>
-            <span class="brand-text">HealthAI</span>
+            <span class="brand-text">Medivio</span>
         </div>
         <div class="nav-links">
             <a href="#" class="nav-link active" data-page="home">Home</a>
             <a href="#" class="nav-link" data-page="consult">Consult</a>
             <a href="#" class="nav-link" data-page="history">History</a>
-            <a href="#" class="nav-link" data-page="medicines">Medicines</a>
+            <a href="#" class="nav-link" data-page="medicines">Marketplace</a>
+            <a href="#" class="nav-link" data-page="reminders">Reminders</a>
         </div>
         <div class="nav-auth" id="nav-auth">
             <button class="btn btn-ghost" id="btn-login-nav" onclick="showModal('login')">Login</button>
@@ -42,7 +43,10 @@
             <div class="hero-glow"></div>
             <div class="hero-content">
                 <div class="hero-badge">🩺 AI-Powered Health Guidance</div>
-                <h1 class="hero-title">Your Personal<br><span class="gradient-text">AI Health Assistant</span></h1>
+                <div class="hero-brand-lockup">
+                    <img src="/assets/logo.png" alt="Medivio logo" class="hero-logo">
+                    <h1 class="hero-title"><span class="gradient-text">Medivio</span></h1>
+                </div>
                 <p class="hero-subtitle">Get preliminary health insights powered by dual AI analysis. Our system uses two AI models — one analyzes your symptoms, another validates the findings — for safer, more reliable guidance.</p>
                 <div class="hero-actions">
                     <button class="btn btn-primary btn-lg" onclick="navigateTo('consult')">
@@ -90,25 +94,21 @@
             <div class="features-grid">
                 <div class="feature-card">
                     <div class="feature-step">1</div>
-                    <div class="feature-icon">📝</div>
                     <h3>Describe Symptoms</h3>
                     <p>Tell us what you're experiencing in detail — pain, duration, severity, and any other relevant information.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-step">2</div>
-                    <div class="feature-icon">🤖</div>
                     <h3>AI Analysis</h3>
                     <p>Gemini AI analyzes your symptoms, identifies possible conditions, and suggests safe OTC options available in India.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-step">3</div>
-                    <div class="feature-icon">👨‍⚕️</div>
                     <h3>Doctor Validation</h3>
                     <p>A second AI with clinical expertise reviews the analysis, removes unsafe advice, and validates the recommendations.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-step">4</div>
-                    <div class="feature-icon">📋</div>
                     <h3>Final Report</h3>
                     <p>Receive a comprehensive, validated health report with safe recommendations and guidance on when to see a doctor.</p>
                 </div>
@@ -117,7 +117,7 @@
         <!-- Disclaimer -->
         <div class="disclaimer-banner">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            <p><strong>Important Disclaimer:</strong> This AI Health Assistant is an educational tool and NOT a substitute for professional medical advice. Always consult a licensed physician for diagnosis and treatment.</p>
+            <p><strong>Important Disclaimer:</strong> Medivio is an educational tool and NOT a substitute for professional medical advice. Always consult a licensed physician for diagnosis and treatment.</p>
         </div>
     </section>
 
@@ -125,14 +125,14 @@
     <section class="page" id="page-consult">
         <div class="consult-container">
             <div class="consult-header">
-                <h1>AI Health <span class="gradient-text">Consultation</span></h1>
+                <h1>Medivio <span class="gradient-text">Consultation</span></h1>
                 <p>Describe your symptoms in detail for accurate analysis</p>
             </div>
             <div class="consult-body">
                 <div class="input-panel">
                     <div class="input-card glass-card">
                         <h3>📋 Tell Us What's Wrong</h3>
-                        <div class="form-row" style="display: flex; gap: 16px; margin-bottom: 16px;">
+                        <div class="form-row consult-intake-row">
                             <div class="form-group" style="flex: 1; margin-bottom: 0;">
                                 <label for="patient-age" style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 0.9rem;">Age:</label>
                                 <input type="number" id="patient-age" min="1" max="120" placeholder="e.g. 28" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text); outline: none; transition: border-color 0.2s;">
@@ -146,6 +146,30 @@
                                     <option value="Other">Other</option>
                                 </select>
                             </div>
+                        </div>
+                        <div class="form-row consult-intake-row">
+                            <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                                <label for="patient-username" style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 0.9rem;">Username:</label>
+                                <input type="text" id="patient-username" placeholder="e.g. ravi.k" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text); outline: none; transition: border-color 0.2s;">
+                            </div>
+                            <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                                <label for="patient-blood-group" style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 0.9rem;">Blood Group:</label>
+                                <select id="patient-blood-group" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text); outline: none; transition: border-color 0.2s;">
+                                    <option value="">Select Blood Group</option>
+                                    <option value="A+">A+</option>
+                                    <option value="A-">A-</option>
+                                    <option value="B+">B+</option>
+                                    <option value="B-">B-</option>
+                                    <option value="AB+">AB+</option>
+                                    <option value="AB-">AB-</option>
+                                    <option value="O+">O+</option>
+                                    <option value="O-">O-</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="patient-allergies" style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 0.9rem;">Allergies (optional):</label>
+                            <input type="text" id="patient-allergies" placeholder="e.g. Penicillin, peanuts, dust" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text); outline: none; transition: border-color 0.2s;">
                         </div>
                         <div class="form-group">
                             <label for="symptoms-input">Describe your symptoms:</label>
@@ -194,10 +218,6 @@
                     </div>
                     <!-- Report -->
                     <div class="report hidden" id="report">
-                        <!-- Fallback Banner -->
-                        <div class="fallback-banner hidden" id="fallback-banner" style="background: rgba(234, 179, 8, 0.15); border: 1px solid var(--yellow); padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 0.95rem; line-height: 1.5; color: #fef08a;">
-                            ⚠️ <strong>System Resilience Active:</strong> Primary analyst server is currently under high load. Secondary clinical validation engine has successfully handled the consultation report.
-                        </div>
                         <!-- Emergency Banner -->
                         <div class="emergency-banner hidden" id="emergency-banner">
                             🚨 <strong>EMERGENCY DETECTED</strong> — Please seek immediate medical attention or call emergency services!
@@ -212,9 +232,12 @@
                             <div class="report-card-body" id="unified-report-body"></div>
                         </div>
                         <!-- Actions -->
-                        <div class="report-actions">
+                        <div class="report-actions" data-html2canvas-ignore="true">
                             <button class="btn btn-outline" onclick="resetConsultation()">New Consultation</button>
+                            <button class="btn btn-primary" onclick="generatePrescription()">Give Prescription</button>
+                            <button class="btn btn-outline" onclick="printPrescription()">Export PDF</button>
                         </div>
+                        <div class="prescription-panel hidden" id="prescription-panel"></div>
                     </div>
                 </div>
             </div>
@@ -224,7 +247,10 @@
     <!-- ========== HISTORY PAGE ========== -->
     <section class="page" id="page-history">
         <div class="page-container">
-            <h1>Consultation <span class="gradient-text">History</span></h1>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                <h1 style="margin: 0;">Consultation <span class="gradient-text">History</span></h1>
+                <button class="btn btn-outline" id="btn-clear-history" onclick="clearHistory()" style="display: none; border-color: var(--red); color: var(--red);">Clear History</button>
+            </div>
             <div class="login-prompt hidden" id="history-login-prompt">
                 <div class="glass-card text-center">
                     <div style="font-size:3rem;margin-bottom:1rem;">🔐</div>
@@ -240,8 +266,20 @@
     <!-- ========== MEDICINES PAGE ========== -->
     <section class="page" id="page-medicines">
         <div class="page-container">
-            <h1>OTC Medicine <span class="gradient-text">Database</span></h1>
+            <h1>Medicine <span class="gradient-text">Marketplace</span></h1>
             <p class="page-subtitle">Common over-the-counter medicines available in India</p>
+            <div class="marketplace-tagline">Get meds acc to your symptoms</div>
+            <div class="symptom-assist glass-card">
+                <div class="symptom-assist-copy">
+                    <strong>Find matching medicines</strong>
+                    <span>Describe what you feel and we’ll surface relevant OTC options from the marketplace.</span>
+                </div>
+                <div class="symptom-assist-controls">
+                    <input type="text" id="medicine-symptoms" placeholder="e.g. headache, fever, cold, acidity">
+                    <button class="btn btn-primary" onclick="recommendMedicinesForSymptoms()">Get Matches</button>
+                    <button class="btn btn-outline" onclick="showAllMedicines()">View All</button>
+                </div>
+            </div>
             <div class="search-bar">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
                 <input type="text" id="medicine-search" placeholder="Search medicines..." oninput="searchMedicines()">
@@ -259,6 +297,93 @@
         </div>
     </section>
 
+    <!-- ========== REMINDERS & NOTIFICATIONS PAGE ========== -->
+    <section class="page" id="page-reminders">
+        <div class="page-container">
+            <h1 style="margin-bottom: 8px;">Medicine <span class="gradient-text">Reminders & Notifications</span></h1>
+            <p class="page-subtitle">Configure automated reminder notifications (Gmail/Dashboard/Browser) and view history logs</p>
+            
+            <div class="reminders-grid">
+                <!-- Left: Reminders Management -->
+                <div class="glass-card">
+                    <h3 style="margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">⏰ Active Reminder Schedules</h3>
+                    
+                    <form id="reminder-form" onsubmit="event.preventDefault(); addReminder();" style="margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid var(--border-glass);">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="rem-medicine-name">Medicine Name *</label>
+                                <input type="text" id="rem-medicine-name" placeholder="e.g. Dolo 650" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="rem-time">Reminder Time (HH:MM) *</label>
+                                <input type="time" id="rem-time" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="rem-dosage">Dosage (optional)</label>
+                                <input type="text" id="rem-dosage" placeholder="e.g. 1 pill / 5ml">
+                            </div>
+                            <div class="form-group">
+                                <label for="rem-frequency">Frequency</label>
+                                <select id="rem-frequency" onchange="toggleReminderDays()">
+                                    <option value="daily">Daily</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="specific_days">Specific Days</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group hidden" id="reminder-days-group">
+                            <label>Reminder Days (Select at least one)</label>
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px;">
+                                <label style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.85rem;"><input type="checkbox" name="rem-day" value="monday"> Mon</label>
+                                <label style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.85rem;"><input type="checkbox" name="rem-day" value="tuesday"> Tue</label>
+                                <label style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.85rem;"><input type="checkbox" name="rem-day" value="wednesday"> Wed</label>
+                                <label style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.85rem;"><input type="checkbox" name="rem-day" value="thursday"> Thu</label>
+                                <label style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.85rem;"><input type="checkbox" name="rem-day" value="friday"> Fri</label>
+                                <label style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.85rem;"><input type="checkbox" name="rem-day" value="saturday"> Sat</label>
+                                <label style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.85rem;"><input type="checkbox" name="rem-day" value="sunday"> Sun</label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="rem-instructions">Special Instructions (optional)</label>
+                            <input type="text" id="rem-instructions" placeholder="e.g. Take after food with warm water">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                            Create Reminder Schedule
+                        </button>
+                    </form>
+                    
+                    <div class="reminders-list" id="reminders-list">
+                        <!-- Reminders will load here -->
+                    </div>
+                </div>
+                
+                <!-- Right: Notifications / Logs -->
+                <div class="glass-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                        <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">🔔 Live Notifications</h3>
+                        <button class="btn btn-outline" onclick="markAllNotificationsRead()" style="font-size: 0.75rem; padding: 6px 12px;">Mark all as read</button>
+                    </div>
+                    
+                    <!-- Browser Notification Settings Toggle -->
+                    <div style="padding: 12px; background: rgba(255,255,255,0.02); border: 1px dashed var(--border-glass); border-radius: var(--radius); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 0.85rem; color: var(--text-secondary);">Browser Native Alerts:</span>
+                        <button class="btn btn-outline" id="btn-browser-notif-permission" onclick="requestBrowserNotificationPermission()" style="font-size: 0.75rem; padding: 6px 12px;">Enable</button>
+                    </div>
+                    
+                    <div class="notifications-list" id="notifications-list">
+                        <!-- Notifications will load here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- ========== AUTH MODAL ========== -->
     <div class="modal-overlay hidden" id="modal-overlay" onclick="closeModal()">
         <div class="modal glass-card" onclick="event.stopPropagation()">
@@ -266,6 +391,10 @@
             <div id="login-form">
                 <h2>Welcome Back</h2>
                 <p class="modal-subtitle">Login to your account</p>
+                <div class="sso-divider"><span>Continue with</span></div>
+                <div class="google-signin-wrap">
+                    <div id="google-signin-button-login"></div>
+                </div>
                 <div class="form-group">
                     <label for="login-email">Email</label>
                     <input type="email" id="login-email" placeholder="you@example.com">
@@ -282,6 +411,10 @@
             <div id="register-form" class="hidden">
                 <h2>Create Account</h2>
                 <p class="modal-subtitle">Sign up for personalized consultations</p>
+                <div class="sso-divider"><span>Or continue with</span></div>
+                <div class="google-signin-wrap">
+                    <div id="google-signin-button-register"></div>
+                </div>
                 <div class="form-row">
                     <div class="form-group"><label for="reg-name">Full Name *</label><input type="text" id="reg-name" placeholder="John Doe"></div>
                     <div class="form-group"><label for="reg-email">Email *</label><input type="email" id="reg-email" placeholder="you@example.com"></div>
@@ -297,6 +430,30 @@
                 <button class="btn btn-primary btn-full" onclick="handleRegister()">Create Account</button>
                 <p class="modal-switch">Already have an account? <a href="#" onclick="showModal('login')">Login</a></p>
             </div>
+            <!-- SSO Profile Completion -->
+            <div id="sso-profile-form" class="hidden">
+                <h2>Complete Your Profile</h2>
+                <p class="modal-subtitle">A few details help personalize your Medivio experience.</p>
+                <div class="form-group">
+                    <label for="sso-gender">Gender</label>
+                    <select id="sso-gender">
+                        <option value="">Select</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="sso-conditions">Existing Conditions</label>
+                    <input type="text" id="sso-conditions" placeholder="e.g., Diabetes, Hypertension">
+                </div>
+                <div class="form-group">
+                    <label for="sso-allergies">Known Allergies</label>
+                    <input type="text" id="sso-allergies" placeholder="e.g., Penicillin, Peanuts">
+                </div>
+                <div class="form-error hidden" id="sso-profile-error"></div>
+                <button class="btn btn-primary btn-full" onclick="saveSsoProfile()">Save & Continue</button>
+            </div>
             <button class="modal-close" onclick="closeModal()">&times;</button>
         </div>
     </div>
@@ -305,9 +462,10 @@
     <div class="toast-container" id="toast-container"></div>
 
     <footer class="footer">
-        <p>AI Health Assistant &copy; 2026 — For educational purposes only. Not a substitute for professional medical advice.</p>
+        <p>Medivio &copy; 2026 — For educational purposes only. Not a substitute for professional medical advice.</p>
     </footer>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

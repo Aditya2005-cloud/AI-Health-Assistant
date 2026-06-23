@@ -1,6 +1,6 @@
 """
-g_mail_user/gmail_sender.py
-----------------------------
+email_notification_service/gmail_sender.py
+------------------------------------------
 Low-level SMTP sender for Gmail using App Password authentication.
 
 Responsibilities:

@@ -1,6 +1,6 @@
 """
-g_mail_user/config.py
----------------------
+email_notification_service/config.py
+------------------------------------
 Loads all Gmail / SMTP settings from environment variables.
 
 This is the ONLY file that reads email-related env vars.
@@ -18,7 +18,7 @@ Required .env entries:
 How to get a Gmail App Password:
     1. Enable 2-Step Verification: https://myaccount.google.com/security
     2. Create App Password:        https://myaccount.google.com/apppasswords
-    3. Choose App: Mail, Device: Other → name it "AI Health Assistant"
+    3. Choose App: Mail, Device: Other → name it "Medivio"
     4. Copy the 16-character code into GMAIL_APP_PASSWORD in .env
 """
 
@@ -41,7 +41,7 @@ class GmailConfig:
 
     # ── Sender identity ───────────────────────────────────────────────────────
     SENDER_ADDRESS: str = os.getenv("GMAIL_SENDER_ADDRESS", "").strip()
-    SENDER_NAME: str    = os.getenv("GMAIL_SENDER_NAME", "AI Health Assistant").strip()
+    SENDER_NAME: str    = os.getenv("GMAIL_SENDER_NAME", "Medivio").strip()
     APP_PASSWORD: str   = os.getenv("GMAIL_APP_PASSWORD", "").strip()
 
     # ── SMTP connection ───────────────────────────────────────────────────────

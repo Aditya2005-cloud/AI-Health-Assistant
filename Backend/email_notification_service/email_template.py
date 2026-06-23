@@ -1,8 +1,8 @@
 """
-g_mail_user/email_template.py
-------------------------------
+email_notification_service/email_template.py
+--------------------------------------------
 Generates a professional, medically compliant HTML email body
-(with a plain-text fallback) for AI Health Consultation follow-ups.
+(with a plain-text fallback) for Medivio follow-ups.
 
 Design rules enforced in code:
   - 12 sections in exact mandated order
@@ -290,7 +290,7 @@ def _build_emergency_email(patient_name: str) -> dict:
     text_body = "\n".join([
         f"Dear {patient_name},",
         "",
-        "Based on the symptoms you described in your recent AI Health Consultation,",
+        "Based on the symptoms you described in your recent Medivio consultation,",
         "your condition may require IMMEDIATE emergency medical attention.",
         "",
         "Please do ONE of the following RIGHT NOW:",
@@ -346,7 +346,7 @@ def _build_emergency_email(patient_name: str) -> dict:
         </div>
         <div class="footer">
             Warm regards,<br>
-            <strong>AI Health Assistant Team</strong><br>
+            <strong>Medivio Team</strong><br>
             Automated Patient Alerts — Do not reply
         </div>
     </div>
@@ -940,7 +940,7 @@ def build_consultation_email(patient_data: dict) -> dict:
 
     # ── Normal consultation email ─────────────────────────────────────────────
     now     = datetime.now().strftime("%d %B %Y at %I:%M %p")
-    subject = f"Your AI Health Consultation Summary — {now}"
+    subject = f"Your Medivio Consultation Summary — {now}"
 
     # We build both Plain Text (fallback) and HTML lists
     text_sections = []
@@ -951,7 +951,7 @@ def build_consultation_email(patient_data: dict) -> dict:
     text_sections.append("\n".join([
         f"Dear {patient_name},",
         "",
-        "Thank you for using the AI Health Consultation service.",
+        "Thank you for using the Medivio service.",
         f"This email is your follow-up summary based on the information you submitted on {now}.",
         "",
         "Patient details on file:",
@@ -1048,7 +1048,7 @@ def build_consultation_email(patient_data: dict) -> dict:
     text_sections.append("\n".join([
         "",
         "Warm regards,",
-        "AI Health Assistant Team",
+        "Medivio Team",
         "(Automated System — Please do not reply to this email)",
     ]))
 
@@ -1061,7 +1061,7 @@ def build_consultation_email(patient_data: dict) -> dict:
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Health Consultation Summary</title>
+    <title>Medivio Consultation Summary</title>
     {CSS_STYLE}
 </head>
 <body>
@@ -1073,7 +1073,7 @@ def build_consultation_email(patient_data: dict) -> dict:
                     <path d="M19 10.5H13.5V5C13.5 4.45 13.05 4 12.5 4H11.5C10.95 4 10.5 4.45 10.5 5V10.5H5C4.45 10.5 4 10.95 4 11.5V12.5C4 13.05 4.45 13.5 5 13.5H10.5V19C10.5 19.55 10.95 20 11.5 20H12.5C13.05 20 13.5 19.55 13.5 19V13.5H19C19.55 13.5 20 13.05 20 12.5V11.5C20 10.95 19.55 10.5 19 10.5Z" fill="#FFFFFF"/>
                 </svg>
             </div>
-            <h1>AI Health Assistant</h1>
+            <h1>Medivio</h1>
             <p>Case Assessment & Consultation Board</p>
         </div>
         <div class="content">
@@ -1081,7 +1081,7 @@ def build_consultation_email(patient_data: dict) -> dict:
         </div>
         <div class="footer">
             Warm regards,<br>
-            <strong>AI Health Assistant Team</strong><br>
+            <strong>Medivio Team</strong><br>
             Automated Clinical Report — Please do not reply directly to this mail.
         </div>
     </div>

@@ -24,12 +24,12 @@ logger = logging.getLogger(__name__)
 
 # ── Email service (fire-and-forget after AI assessment) ──────────────────────
 try:
-    from g_mail_user import dispatch_consultation_email
+    from email_notification_service import dispatch_consultation_email
     EMAIL_SERVICE_AVAILABLE = True
 except ImportError:
     EMAIL_SERVICE_AVAILABLE = False
     logger.warning(
-        "[ConsultRoutes] g_mail_user package not found. "
+        "[ConsultRoutes] email_notification_service package not found. "
         "Consultation emails will be disabled."
     )
 
@@ -119,22 +119,21 @@ def consult(current_user):
 
         return jsonify(emergency_result), 200
 
-    # ── Step 2: Build patient context from the user's full profile ──
-    # This is automatically injected — user doesn't need to type it
-    patient_context = {
-        "Name": current_user.full_name,
-        "Age": current_user.age,
-        "Gender": current_user.gender,
-        "Blood Group": current_user.blood_group,
-        "Known Allergies": current_user.known_allergies,
-        "Medical Conditions": current_user.medical_conditions,
-        "Current Medications": current_user.current_medications,
-        "Emergency Contact": current_user.emergency_contact_name,
-    }
-    # Remove empty values
-    patient_context = {k: v for k, v in patient_context.items() if v}
-
     # ── Step 3: Run dual-AI pipeline ──
+    # Auto-profile injection from DB is disabled. We use the explicit form data submitted on the UI.
+    frontend_profile = data.get("patient_profile", {})
+    patient_context = None
+    if frontend_profile:
+        patient_context = {
+            "Name": frontend_profile.get("username"),
+            "Age": frontend_profile.get("age"),
+            "Gender": frontend_profile.get("gender"),
+            "Blood Group": frontend_profile.get("blood_group"),
+            "Known Allergies": frontend_profile.get("allergies"),
+        }
+        # Remove empty values
+        patient_context = {k: v for k, v in patient_context.items() if str(v).strip()}
+
     result = ai_doctor_pipeline(symptoms, patient_context)
 
     # ── Step 4: Save consultation to database ──
@@ -220,6 +219,16 @@ def delete_one(current_user, consultation_id):
     db.session.delete(c)
     db.session.commit()
     return jsonify({"message": "Consultation deleted"}), 200
+
+
+# ─── DELETE /api/history ────────────────────
+@consult_bp.route("/api/history", methods=["DELETE"])
+@jwt_required
+def clear_history(current_user):
+    """Delete all consultations for the logged-in user."""
+    Consultation.query.filter_by(user_id=current_user.id).delete()
+    db.session.commit()
+    return jsonify({"message": "All history cleared"}), 200
 
 
 # ─── Legacy routes (frontend compatibility) ─

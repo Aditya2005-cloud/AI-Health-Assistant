@@ -1,5 +1,5 @@
 # ==============================================================
-# AI Health Assistant — Python Dependencies
+# Medivio — Python Dependencies
 # ==============================================================
 # Install all with:  pip install -r requirements.txt
 # ==============================================================
@@ -70,3 +70,10 @@ groq==1.4.0
 #
 # Authentication uses Gmail App Passwords (16-char code), NOT
 # the regular Gmail account password. See README.md for setup.
+
+# ── Medicine Reminder Scheduler & Notifications ──────────────────
+APScheduler>=3.10.0
+# APScheduler: Advanced Python Scheduler. Runs a background job
+# that checks for pending medicine reminders every N minutes and
+# dispatches notifications (Email, Dashboard, Browser). Uses BackgroundScheduler
+# in a daemon thread — non-blocking to the Flask web server.

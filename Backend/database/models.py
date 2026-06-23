@@ -1,7 +1,7 @@
 """
 database/models.py
 ------------------
-SQLAlchemy ORM models for the AI Health Assistant.
+SQLAlchemy ORM models for Medivio.
 
 Tables:
   - users         → patient accounts (full medical profile)
@@ -136,4 +136,105 @@ class OTCMedicine(db.Model):
             "common_dosage": self.common_dosage,
             "warnings": self.warnings,
             "price_range": self.price_range,
+        }
+
+
+# ─────────────────────────────────────────────
+# Medicine Reminder Model (SMS Automation)
+# ─────────────────────────────────────────────
+class MedicineReminder(db.Model):
+    """
+    Stores scheduled medicine reminders for SMS notifications.
+
+    Each reminder belongs to a user and defines:
+      - Which medicine to take
+      - When to send the reminder (time of day)
+      - How often (daily, weekly, specific days)
+      - Optional start/end dates for course duration
+    """
+
+    __tablename__ = "medicine_reminders"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+
+    # Medicine details
+    medicine_name = db.Column(db.String(200), nullable=False)
+    dosage = db.Column(db.String(100), nullable=True)         # e.g. "500mg"
+    instructions = db.Column(db.Text, nullable=True)          # e.g. "Take after food"
+
+    # Schedule
+    reminder_time = db.Column(db.Time, nullable=False)        # e.g. 08:00, 14:00
+    frequency = db.Column(
+        db.String(20), nullable=False, default="daily"        # daily | weekly | specific_days
+    )
+    reminder_days = db.Column(
+        db.String(100), nullable=True                         # e.g. "monday,wednesday,friday"
+    )
+
+    # Course duration (optional)
+    start_date = db.Column(db.Date, nullable=True)
+    end_date = db.Column(db.Date, nullable=True)
+
+    # Status tracking
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    last_sent_at = db.Column(db.DateTime, nullable=True)
+
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+    # Relationship back to User
+    reminder_user = db.relationship("User", backref=db.backref("medicine_reminders", lazy=True))
+
+    def to_dict(self):
+        """Return reminder data as dict."""
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "medicine_name": self.medicine_name,
+            "dosage": self.dosage,
+            "instructions": self.instructions,
+            "reminder_time": self.reminder_time.strftime("%H:%M") if self.reminder_time else None,
+            "frequency": self.frequency,
+            "reminder_days": self.reminder_days,
+            "start_date": self.start_date.isoformat() if self.start_date else None,
+            "end_date": self.end_date.isoformat() if self.end_date else None,
+            "is_active": self.is_active,
+            "last_sent_at": self.last_sent_at.isoformat() if self.last_sent_at else None,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+# ─────────────────────────────────────────────
+# Dashboard Notification Model
+# ─────────────────────────────────────────────
+class DashboardNotification(db.Model):
+    """Stores system and failure alerts shown to the user on the dashboard."""
+
+    __tablename__ = "dashboard_notifications"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    title = db.Column(db.String(200), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    notification_type = db.Column(db.String(50), nullable=False, default="reminder") # reminder | alert | info
+    is_read = db.Column(db.Boolean, default=False, nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    # Relationship back to User
+    notification_user = db.relationship("User", backref=db.backref("dashboard_notifications", lazy=True))
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "title": self.title,
+            "message": self.message,
+            "notification_type": self.notification_type,
+            "is_read": self.is_read,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
         }

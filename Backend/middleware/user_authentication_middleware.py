@@ -1,10 +1,10 @@
 """
-middleware/auth_middleware.py
-------------------------------
+middleware/user_authentication_middleware.py
+--------------------------------------------
 JWT authentication decorator.
 
 Usage:
-    from middleware.auth_middleware import jwt_required
+    from middleware.user_authentication_middleware import jwt_required
 
     @app.route("/api/protected")
     @jwt_required
@@ -52,7 +52,7 @@ def jwt_required(f):
             return jsonify({"error": "Invalid token. Please login again."}), 401
 
         # Load user from database
-        current_user = User.query.get(user_id)
+        current_user = db.session.get(User, user_id)
         if not current_user:
             return jsonify({"error": "User not found. Token invalid."}), 401
 

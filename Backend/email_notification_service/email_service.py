@@ -1,6 +1,6 @@
 """
-g_mail_user/email_service.py
------------------------------
+email_notification_service/email_service.py
+-------------------------------------------
 Orchestration layer — the single entry point for sending consultation emails.
 
 Ties together:
@@ -9,7 +9,7 @@ Ties together:
 
 Usage in consult_routes.py (after db.session.commit()):
 
-    from g_mail_user import dispatch_consultation_email
+    from email_notification_service import dispatch_consultation_email
 
     dispatch_consultation_email(
         patient_name         = current_user.full_name,

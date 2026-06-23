@@ -1,4 +1,4 @@
-# 🩺 AI Health Assistant
+# 🩺 Medivio
 
 > A production-ready AI-powered health consultation platform built with Python (Flask), Google Gemini, Groq (Llama-3), and MySQL — featuring a dual-AI clinical pipeline, JWT authentication, automated email summaries, and an Indian OTC medicine database.
 
@@ -144,7 +144,7 @@ Every consultation is saved to MySQL with:
 ## 📂 Project Structure
 
 ```
-AI Health Assistant/
+Medivio/
 │
 ├── Backend/
 │   ├── app.py                    # Flask app factory, DB auto-create, OTC seeding
@@ -287,7 +287,7 @@ python app.py
 
 Open your browser and go to: **`http://localhost:5000`**
 
-You should see the AI Health Assistant login page.
+You should see the Medivio login page.
 
 ---
 
@@ -325,7 +325,7 @@ GROQ_MODEL=llama-3.3-70b-versatile
 # See "Gmail Email Setup" section below
 GMAIL_SENDER_ADDRESS=your_gmail@gmail.com
 GMAIL_APP_PASSWORD=xxxx xxxx xxxx xxxx
-GMAIL_SENDER_NAME=AI Health Assistant
+GMAIL_SENDER_NAME=Medivio
 GMAIL_SMTP_HOST=smtp.gmail.com
 GMAIL_SMTP_PORT=587
 GMAIL_SMTP_TIMEOUT=30
@@ -360,7 +360,7 @@ Go to [myaccount.google.com/security](https://myaccount.google.com/security) and
 ### Step 2 — Generate an App Password
 Go to [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
 - Select App: **Mail**
-- Select Device: **Other** → type `AI Health Assistant`
+- Select Device: **Other** → type `Medivio`
 - Click **Generate**
 - Copy the 16-character code shown
 
@@ -771,7 +771,7 @@ Open an [Issue](https://github.com/Aditya2005-cloud/AI-Health-Assistant/issues) 
 
 ## ⚕️ Medical Disclaimer
 
-> **This AI Health Assistant is strictly for informational and educational purposes only.**
+> **This Medivio service is strictly for informational and educational purposes only.**
 > It is NOT a substitute for professional medical advice, diagnosis, or treatment.
 > Always consult a licensed healthcare provider for any medical concerns.
 > In a medical emergency, call **112** (National Emergency) or **102** (Ambulance) immediately.

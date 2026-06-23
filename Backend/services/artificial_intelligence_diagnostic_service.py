@@ -6,10 +6,13 @@ Supports both the new google-genai SDK and the legacy google-generativeai SDK dy
 """
 
 import json
+import logging
 import re
 from groq import Groq
 from config import Config
 from prompts import GEMINI_SYSTEM_PROMPT, GROQ_SYSTEM_PROMPT
+
+logger = logging.getLogger(__name__)
 
 # Dynamic SDK Resolution to prevent startup crashes in misconfigured environments
 HAS_NEW_GENAI = False
@@ -19,14 +22,14 @@ try:
     from google import genai
     from google.genai import types
     HAS_NEW_GENAI = True
-    print("[AI Service] Successfully imported new google-genai SDK.")
+    logger.info("[AI Service] Successfully imported new google-genai SDK.")
 except ImportError:
     try:
         import google.generativeai as legacy_genai
         HAS_LEGACY_GENAI = True
-        print("[AI Service] Falling back to legacy google-generativeai SDK wrapper.")
+        logger.info("[AI Service] Falling back to legacy google-generativeai SDK wrapper.")
     except ImportError:
-        print("[AI Service] [Warning] No Google GenAI SDK found. Gemini will bypass to Groq fallback.")
+        logger.warning("[AI Service] No Google GenAI SDK found. Gemini will bypass to Groq fallback.")
 
 
 def _extract_json(text):
@@ -98,9 +101,6 @@ def call_gemini(user_input, patient_context=None):
             legacy_genai.configure(api_key=Config.GEMINI_API_KEY)
             # Map new flash model name to legacy model name if needed
             model_name = Config.GEMINI_MODEL
-            if "gemini-2.0-flash" in model_name:
-                # The legacy SDK supports gemini-1.5-flash or gemini-2.0-flash-exp depending on version
-                model_name = "gemini-1.5-flash"
             
             model = legacy_genai.GenerativeModel(
                 model_name=model_name,
@@ -113,8 +113,8 @@ def call_gemini(user_input, patient_context=None):
             return _extract_json(response.text)
 
     except Exception as e:
-        print(f"[Warning] Gemini API call failed: {e}. Falling back to Groq for analysis.")
-        raise e
+        logger.warning("[AI Service] Gemini API call failed: %s. Falling back to Groq for analysis.", e)
+        raise
 
 
 def call_groq_as_analyst(user_input, patient_context=None):
@@ -147,14 +147,6 @@ def call_groq_as_analyst(user_input, patient_context=None):
 
         response_text = chat_completion.choices[0].message.content
         result = _extract_json(response_text)
-        # Add annotation that it's generated via fallback
-        if isinstance(result, dict):
-            # Check if junior clinician assessment structure exists
-            intake = result.get("junior_clinician_assessment")
-            if intake:
-                intake["presentation_summary"] = "[Resilience Fallback Active] " + intake.get("presentation_summary", "")
-            else:
-                result["patient_summary"] = "[Resilience Fallback Active] " + result.get("patient_summary", "")
         return result
     except Exception as e:
         return {
@@ -220,7 +212,7 @@ def ai_doctor_pipeline(user_input, patient_context=None):
     except Exception:
         # Step 1 Fallback: Call Groq to run the Analyst prompt
         is_fallback = True
-        print("[Resilience] Initiating Groq Analyst Fallback due to Gemini API failure.")
+        logger.info("[Resilience] Initiating Groq Analyst Fallback due to Gemini API failure.")
         gemini_response = call_groq_as_analyst(user_input, patient_context)
 
     # Check for Analyst errors
