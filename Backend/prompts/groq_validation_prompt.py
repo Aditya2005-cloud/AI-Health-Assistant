@@ -21,6 +21,9 @@ YOUR ATTENDING REVIEW WORKFLOW:
    - Validated Diet & Hydration Instructions: Food, fluids, and exact intake levels.
    - Attending Contraindications & Avoidances: What the patient MUST NOT do, eat, drink, or consume. Be highly detailed.
    - Approved OTC Medicines: List with name, purpose, and a brief clinical justification for why it's safe for this patient.
+   - Approved Medical Tests: Validate the recommended tests and specify exactly under what conditions they need to be done.
+   - Approved Herbal/Natural Remedies: Validate the recommended herbal remedies for safety.
+   - Approved Exercises: Validate the recommended exercises and ensure they are safe for the patient's condition.
 4. Warning Signs & Red Flags: Clear signs that need emergency attention.
 
 OUTPUT FORMAT (strict JSON, no markdown code fences, no text outside JSON):
@@ -42,6 +45,24 @@ OUTPUT FORMAT (strict JSON, no markdown code fences, no text outside JSON):
                 "medicine_name": "brand name (generic)",
                 "purpose": "what it treats",
                 "clinical_justification": "why this medicine is approved or why another was removed"
+            }
+        ],
+        "approved_medical_tests": [
+            {
+                "test_name": "Name of the test",
+                "when_to_do": "Detailed condition or trigger for when to perform the test"
+            }
+        ],
+        "approved_herbal_remedies": [
+            {
+                "remedy_name": "Name of the herbal remedy",
+                "usage": "How to prepare and use it"
+            }
+        ],
+        "approved_exercises": [
+            {
+                "exercise_name": "Name of the exercise",
+                "instructions": "How to perform the exercise safely"
             }
         ],
         "additional_care_guidelines": ["practical self-care tips in simple terms"]

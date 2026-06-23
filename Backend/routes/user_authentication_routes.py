@@ -11,14 +11,21 @@ Endpoints:
   PUT  /api/auth/profile   → Update my profile (JWT required)
 """
 
+import json
+import logging
 import re
-import jwt
+import secrets
+from urllib import request as urlrequest
+from urllib.error import HTTPError, URLError
 from datetime import datetime, timezone, timedelta
 from flask import Blueprint, request, jsonify
+import jwt
 from bcrypt import hashpw, checkpw, gensalt
 from database import db, User
 from middleware import jwt_required
 from config import Config
+
+logger = logging.getLogger(__name__)
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -36,7 +43,7 @@ def make_token(user_id, email):
 
 def is_strong_password(password):
     """Return True if password has >= 8 chars, one uppercase, one lowercase, one digit."""
-    if len(password) < 8:
+    if not password or len(password) < 8:
         return False
     if not re.search(r"[A-Z]", password):
         return False
@@ -50,6 +57,53 @@ def is_strong_password(password):
 def is_valid_phone(phone):
     """Basic phone number format check."""
     return bool(re.match(r"^[+\d\s\-()]{7,20}$", phone))
+
+
+def _random_password_hash():
+    """Generate an unusable but valid bcrypt hash for SSO-created accounts."""
+    random_secret = secrets.token_urlsafe(32).encode("utf-8")
+    return hashpw(random_secret, gensalt(rounds=12)).decode("utf-8")
+
+
+def _needs_profile_completion(user):
+    """Return True when the minimum health profile is still incomplete."""
+    required_fields = [
+        user.gender,
+        user.known_allergies,
+        user.medical_conditions,
+    ]
+    return any(not (field or "").strip() for field in required_fields)
+
+
+def verify_google_credential(credential):
+    """Verify a Google ID token and return the payload if valid."""
+    if not Config.GOOGLE_CLIENT_ID:
+        raise ValueError("Google SSO is not configured on the server.")
+
+    try:
+        from google.oauth2 import id_token
+        from google.auth.transport import requests as google_requests
+
+        return id_token.verify_oauth2_token(
+            credential,
+            google_requests.Request(),
+            Config.GOOGLE_CLIENT_ID,
+        )
+    except ImportError:
+        tokeninfo_url = f"https://oauth2.googleapis.com/tokeninfo?id_token={credential}"
+        try:
+            with urlrequest.urlopen(tokeninfo_url, timeout=10) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+        except (HTTPError, URLError, TimeoutError, ValueError, json.JSONDecodeError) as error:
+            raise ValueError("Unable to verify Google token.") from error
+
+        audience = payload.get("aud")
+        email_verified = str(payload.get("email_verified", "")).lower() == "true"
+        if audience != Config.GOOGLE_CLIENT_ID or not email_verified:
+            raise ValueError("Invalid Google token.")
+        return payload
+    except Exception as error:
+        raise ValueError("Invalid Google credential.") from error
 
 
 # ─── POST /api/auth/register ────────────────
@@ -196,6 +250,60 @@ def logout(current_user):
     This endpoint exists for logging and future token blacklist support.
     """
     return jsonify({"message": "Logged out successfully"}), 200
+
+
+@auth_bp.route("/api/auth/sso-config", methods=["GET"])
+def sso_config():
+    """Expose public Google SSO config to the frontend."""
+    return jsonify({
+        "enabled": bool(Config.GOOGLE_CLIENT_ID),
+        "google_client_id": Config.GOOGLE_CLIENT_ID or None,
+    }), 200
+
+
+@auth_bp.route("/api/auth/google", methods=["POST"])
+def google_login():
+    """Authenticate or create a local account using a Google ID token."""
+    data = request.get_json(silent=True) or {}
+    credential = (data.get("credential") or data.get("id_token") or "").strip()
+    if not credential:
+        return jsonify({"error": "Google credential is required"}), 400
+
+    try:
+        payload = verify_google_credential(credential)
+    except ValueError as error:
+        return jsonify({"error": str(error)}), 401
+
+    email = (payload.get("email") or "").strip().lower()
+    if not email:
+        return jsonify({"error": "Google account did not return an email address"}), 400
+
+    full_name = (payload.get("name") or payload.get("given_name") or email.split("@")[0]).strip()
+    if not full_name:
+        full_name = "Google User"
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        user = User(
+            full_name=full_name,
+            email=email,
+            password_hash=_random_password_hash(),
+        )
+        db.session.add(user)
+        db.session.commit()
+    else:
+        if full_name and user.full_name != full_name:
+            user.full_name = user.full_name or full_name
+            db.session.commit()
+
+    token = make_token(user.id, user.email)
+    return jsonify({
+        "message": "Google sign-in successful",
+        "token": token,
+        "user": user.to_dict(),
+        "auth_method": "google",
+        "needs_profile_completion": _needs_profile_completion(user),
+    }), 200
 
 
 # ─── GET /api/auth/profile ──────────────────

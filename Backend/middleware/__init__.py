@@ -1,4 +1,4 @@
 """
 middleware/__init__.py
 """
-from .auth_middleware import jwt_required
+from .user_authentication_middleware import jwt_required

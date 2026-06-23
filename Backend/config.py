@@ -6,6 +6,7 @@ This is the ONLY place where environment variables are read.
 """
 
 import os
+from urllib.parse import quote_plus
 from dotenv import load_dotenv
 
 # Load .env file from the Backend folder
@@ -26,9 +27,9 @@ class Config:
     MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD", "root")
     MYSQL_DATABASE = os.getenv("MYSQL_DATABASE", "health_ai")
 
-    # SQLAlchemy connection string
+    # SQLAlchemy connection string (password is URL-encoded for special characters)
     SQLALCHEMY_DATABASE_URI = (
-        f"mysql+mysqlconnector://{MYSQL_USER}:{MYSQL_PASSWORD}"
+        f"mysql+mysqlconnector://{MYSQL_USER}:{quote_plus(MYSQL_PASSWORD)}"
         f"@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DATABASE}"
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -40,5 +41,11 @@ class Config:
     # ---- AI APIs ----
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
     GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
-    GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+    GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
     GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+
+    # ---- SSO ----
+    GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "").strip()
+
+    # ---- Reminder Scheduler ----
+    REMINDER_INTERVAL = int(os.getenv("REMINDER_INTERVAL", 1))

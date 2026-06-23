@@ -1,7 +1,7 @@
 """
 test_backend.py
 ---------------
-Full automated test suite for the AI Health Assistant backend.
+Full automated test suite for the Medivio backend.
 Tests: DB connection, signup, login, JWT security, protected routes,
        history, medicine endpoint, and edge cases.
 
@@ -348,9 +348,57 @@ test("Profile update: no token -> 401",          r.status_code == 401)
 
 
 # ===========================================================
-# 10. LOGOUT
+# 10. MEDICINE REMINDERS & NOTIFICATIONS
 # ===========================================================
-section("10. Logout")
+section("10. Medicine Reminders & Notifications")
+
+# 10a. Create reminder
+r = requests.post(f"{BASE}/api/reminders",
+                  headers={"Authorization": f"Bearer {token}"},
+                  json={
+                      "medicine_name": "Paracetamol 500mg",
+                      "reminder_time": "08:00",
+                      "dosage": "1 tablet",
+                      "frequency": "daily",
+                      "instructions": "Take after breakfast"
+                  })
+data = r.json()
+reminder_ok = r.status_code == 201 and "reminder" in data
+test("Reminders: create reminder -> 201", reminder_ok)
+reminder_id = data["reminder"]["id"] if reminder_ok else None
+
+# 10b. List reminders
+r = requests.get(f"{BASE}/api/reminders",
+                 headers={"Authorization": f"Bearer {token}"})
+test("Reminders: list reminders -> 200", r.status_code == 200 and len(r.json().get("reminders", [])) >= 1)
+
+# 10c. Toggle reminder
+if reminder_id:
+    r = requests.post(f"{BASE}/api/reminders/{reminder_id}/toggle",
+                      headers={"Authorization": f"Bearer {token}"})
+    test("Reminders: toggle reminder -> 200", r.status_code == 200 and r.json().get("reminder", {}).get("is_active") == False)
+
+# 10d. Fetch notifications
+r = requests.get(f"{BASE}/api/notifications",
+                 headers={"Authorization": f"Bearer {token}"})
+test("Notifications: fetch notifications -> 200", r.status_code == 200 and "notifications" in r.json())
+
+# 10e. Fetch unread notifications
+r = requests.get(f"{BASE}/api/notifications/unread",
+                 headers={"Authorization": f"Bearer {token}"})
+test("Notifications: fetch unread notifications -> 200", r.status_code == 200 and "notifications" in r.json())
+
+# 10f. Delete reminder
+if reminder_id:
+    r = requests.delete(f"{BASE}/api/reminders/{reminder_id}",
+                        headers={"Authorization": f"Bearer {token}"})
+    test("Reminders: delete reminder -> 200", r.status_code == 200)
+
+
+# ===========================================================
+# 11. LOGOUT
+# ===========================================================
+section("11. Logout")
 
 r = requests.post(f"{BASE}/api/auth/logout",
                   headers={"Authorization": f"Bearer {token}"})

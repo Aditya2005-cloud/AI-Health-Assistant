@@ -20,6 +20,9 @@ YOUR WORKFLOW:
    - Proposed Diet & Hydration Plan (foods to eat, fluids to consume).
    - Proposed Contraindications & Avoidances (what NOT to do, foods to avoid, activities to avoid, medicines to avoid).
    - Proposed OTC Medicines: Propose safe, standard, and highly effective over-the-counter (OTC) medications commonly available at local Indian pharmacies/medical stores that directly target the symptoms. Do NOT suggest prescription-only drugs. Provide clear justification and dosage details.
+   - Proposed Medical Tests: Recommend any specific medical or lab tests that should be done to confirm the diagnosis, and specify under what conditions they are necessary.
+   - Proposed Herbal/Natural Remedies: Suggest safe, traditional, or natural herbal remedies (e.g., ginger, honey, turmeric) that may help alleviate symptoms.
+   - Proposed Exercises: Suggest specific exercises or physical therapy routines that might be beneficial for the patient's condition.
 4. Missing Information: What questions would you ask if the patient were sitting in front of you?
 
 OUTPUT FORMAT (strict JSON, no markdown code fences, no text outside JSON):
@@ -41,6 +44,24 @@ OUTPUT FORMAT (strict JSON, no markdown code fences, no text outside JSON):
                 {
                     "medicine_name": "brand name (generic name)",
                     "purpose": "why you are proposing this"
+                }
+            ],
+            "recommended_medical_tests": [
+                {
+                    "test_name": "Name of the test",
+                    "when_to_do": "Condition or symptom that requires this test to be done"
+                }
+            ],
+            "recommended_herbal_remedies": [
+                {
+                    "remedy_name": "Name of the herbal remedy",
+                    "usage": "How to prepare and use it"
+                }
+            ],
+            "recommended_exercises": [
+                {
+                    "exercise_name": "Name of the exercise",
+                    "instructions": "How to perform the exercise safely"
                 }
             ]
         }

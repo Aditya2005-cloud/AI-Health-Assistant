@@ -1,5 +1,5 @@
 -- ============================================================
--- AI Health Assistant - MySQL Database Setup
+-- Medivio - MySQL Database Setup
 -- ============================================================
 -- This script manually creates only the database shell.
 -- All tables are auto-created by Flask-SQLAlchemy on startup.
