@@ -238,3 +238,69 @@ class DashboardNotification(db.Model):
             "is_read": self.is_read,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
+
+
+# ─────────────────────────────────────────────
+# Email Delivery Log Model
+# ─────────────────────────────────────────────
+class EmailLog(db.Model):
+    """
+    Tracks every consultation email sent through the platform.
+
+    Records delivery status, SMTP responses, message IDs, and error
+    diagnostics so both users and admins can verify delivery and
+    troubleshoot failures.
+
+    Status values:
+      - 'queued'     : Email task accepted, thread spawned
+      - 'delivered'  : SMTP server accepted the message (250 OK)
+      - 'failed'     : All retry attempts exhausted or fatal error
+      - 'skipped'    : Email was not sent (e.g. missing config, no recipient)
+    """
+
+    __tablename__ = "email_logs"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    consultation_id = db.Column(db.Integer, db.ForeignKey("consultations.id"), nullable=True)
+
+    # Recipient and subject
+    recipient_email = db.Column(db.String(255), nullable=False)
+    subject = db.Column(db.String(500), nullable=True)
+
+    # Delivery tracking
+    status = db.Column(
+        db.String(20), nullable=False, default="queued"  # queued | delivered | failed | skipped
+    )
+    message_id = db.Column(db.String(255), nullable=True)       # RFC 5322 Message-ID header
+    smtp_response = db.Column(db.Text, nullable=True)           # SMTP server response string
+    error_message = db.Column(db.Text, nullable=True)           # Error details if failed
+    retry_count = db.Column(db.Integer, nullable=False, default=0)
+
+    # Timestamps
+    queued_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    delivered_at = db.Column(db.DateTime, nullable=True)
+    failed_at = db.Column(db.DateTime, nullable=True)
+    opened_at = db.Column(db.DateTime, nullable=True)
+
+    # Relationship back to User
+    email_log_user = db.relationship("User", backref=db.backref("email_logs", lazy=True))
+
+    def to_dict(self):
+        """Return email log data as dict for API responses."""
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "consultation_id": self.consultation_id,
+            "recipient_email": self.recipient_email,
+            "subject": self.subject,
+            "status": self.status,
+            "message_id": self.message_id,
+            "smtp_response": self.smtp_response,
+            "error_message": self.error_message,
+            "retry_count": self.retry_count,
+            "queued_at": self.queued_at.isoformat() if self.queued_at else None,
+            "delivered_at": self.delivered_at.isoformat() if self.delivered_at else None,
+            "failed_at": self.failed_at.isoformat() if self.failed_at else None,
+            "opened_at": self.opened_at.isoformat() if self.opened_at else None,
+        }

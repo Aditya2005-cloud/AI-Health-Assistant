@@ -380,6 +380,47 @@
                         <!-- Notifications will load here -->
                     </div>
                 </div>
+
+                <!-- ========== EMAIL DELIVERABILITY DIAGNOSTICS & TRACKING ========== -->
+                <div class="glass-card" style="grid-column: 1 / -1; margin-top: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                        <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">📧 Email Delivery &amp; Open Diagnostics</h3>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-outline" onclick="loadEmailLogs()" style="font-size: 0.8rem; padding: 8px 16px;">
+                                🔄 Refresh
+                            </button>
+                            <button class="btn btn-primary" onclick="sendTestEmail()" style="font-size: 0.8rem; padding: 8px 16px;">
+                                ⚡ Send Test Email
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5;">
+                        Track your clinical report deliveries in real time. We monitor delivery receipts and record exact open times using transparent tracking pixels to confirm successful inbox arrival. If an email fails, you can trigger a manual resend.
+                    </p>
+                    
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid var(--border-glass); color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                                    <th style="padding: 10px 12px;">Recipient</th>
+                                    <th style="padding: 10px 12px;">Subject</th>
+                                    <th style="padding: 10px 12px;">Status</th>
+                                    <th style="padding: 10px 12px;">Sent At</th>
+                                    <th style="padding: 10px 12px;">Opened At</th>
+                                    <th style="padding: 10px 12px; text-align: right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="email-logs-list">
+                                <tr>
+                                    <td colspan="6" style="padding: 24px; text-align: center; color: var(--text-muted);">
+                                        Loading email delivery logs...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </section>

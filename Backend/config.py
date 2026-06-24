@@ -19,6 +19,7 @@ class Config:
     # ---- Flask ----
     SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-change-me")
     FLASK_DEBUG = os.getenv("FLASK_DEBUG", "True").lower() == "true"
+    APP_BASE_URL = os.getenv("APP_BASE_URL", "http://localhost:5000").rstrip("/")
 
     # ---- MySQL ----
     MYSQL_HOST = os.getenv("MYSQL_HOST", "localhost")

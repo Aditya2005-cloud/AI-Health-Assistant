@@ -112,6 +112,7 @@ function navigateTo(page) {
     if (page === "reminders") {
         loadReminders();
         loadNotifications();
+        loadEmailLogs();
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -1564,6 +1565,126 @@ async function markAllNotificationsRead() {
         if (!res.ok) throw new Error("Failed to clear notifications");
         showToast("All notifications marked as read.", "success");
         loadNotifications();
+    } catch (e) {
+        showToast(e.message, "error");
+    }
+}
+
+// ── Email Diagnostics & Tracking ──────────────────────────────────────────
+async function loadEmailLogs() {
+    if (!authToken) return;
+    try {
+        const listBody = document.getElementById("email-logs-list");
+        if (!listBody) return;
+        
+        listBody.innerHTML = `<tr><td colspan="6" style="padding:24px; text-align:center; color:var(--text-muted);">Loading email logs...</td></tr>`;
+        
+        const res = await fetch(API + "/api/email-status", { headers: authHeaders() });
+        if (!res.ok) throw new Error("Could not load email delivery logs");
+        const data = await res.json();
+        
+        if (!data.logs || data.logs.length === 0) {
+            listBody.innerHTML = `<tr><td colspan="6" style="padding:24px; text-align:center; color:var(--text-muted);">No email records found. Send a consultation to trigger an email log.</td></tr>`;
+            return;
+        }
+        
+        listBody.innerHTML = "";
+        data.logs.forEach(log => {
+            const tr = document.createElement("tr");
+            tr.style.borderBottom = "1px solid var(--border-glass)";
+            
+            // Recipient
+            const recipient = log.recipient_email || "—";
+            
+            // Subject
+            const subject = log.subject || "—";
+            
+            // Status badge styling
+            let statusBadge = "";
+            if (log.status === "delivered") {
+                statusBadge = `<span style="display:inline-block; padding:2px 8px; border-radius:50px; background:rgba(34,197,94,0.1); color:var(--green); font-size:0.78rem; font-weight:600;">Delivered</span>`;
+            } else if (log.status === "failed") {
+                statusBadge = `<span style="display:inline-block; padding:2px 8px; border-radius:50px; background:rgba(239,68,68,0.1); color:var(--red); font-size:0.78rem; font-weight:600;" title="${log.error_message || ''}">Failed</span>`;
+            } else if (log.status === "queued") {
+                statusBadge = `<span style="display:inline-block; padding:2px 8px; border-radius:50px; background:rgba(234,179,8,0.1); color:var(--yellow); font-size:0.78rem; font-weight:600;">Queued</span>`;
+            } else {
+                statusBadge = `<span style="display:inline-block; padding:2px 8px; border-radius:50px; background:rgba(255,255,255,0.05); color:var(--text-muted); font-size:0.78rem;">${log.status || 'Unknown'}</span>`;
+            }
+            
+            // Sent At
+            let sentAtStr = "—";
+            if (log.sent_at || log.created_at) {
+                const date = new Date(log.sent_at || log.created_at);
+                sentAtStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + " " + date.toLocaleDateString();
+            }
+            
+            // Opened At
+            let openedAtStr = "—";
+            if (log.opened_at) {
+                const date = new Date(log.opened_at);
+                openedAtStr = `👁️ ` + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + " " + date.toLocaleDateString();
+            }
+            
+            // Actions
+            let actionBtn = "";
+            if (log.status === "failed" || log.status === "skipped" || (log.status === "delivered" && !log.opened_at)) {
+                actionBtn = `<button class="btn btn-outline" onclick="resendEmail(${log.id})" style="font-size:0.72rem; padding:4px 10px; border-color:var(--accent-1); color:var(--accent-1);">Resend</button>`;
+            }
+            
+            tr.innerHTML = `
+                <td style="padding:12px; color:var(--text-primary); font-weight:500;">${recipient}</td>
+                <td style="padding:12px; color:var(--text-secondary); max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${subject}</td>
+                <td style="padding:12px;">${statusBadge}</td>
+                <td style="padding:12px; color:var(--text-muted); font-size:0.8rem;">${sentAtStr}</td>
+                <td style="padding:12px; color:var(--accent-2); font-size:0.8rem;">${openedAtStr}</td>
+                <td style="padding:12px; text-align:right;">${actionBtn}</td>
+            `;
+            listBody.appendChild(tr);
+        });
+    } catch (e) {
+        console.error(e);
+        const listBody = document.getElementById("email-logs-list");
+        if (listBody) {
+            listBody.innerHTML = `<tr><td colspan="6" style="padding:24px; text-align:center; color:var(--red);">Failed to load email logs: ${e.message}</td></tr>`;
+        }
+    }
+}
+
+async function sendTestEmail() {
+    const email = prompt("Enter the recipient email address for the deliverability test:", currentUser?.email || "");
+    if (!email) return;
+    
+    showToast("Sending test email...", "success");
+    try {
+        const res = await fetch(API + "/api/email-status/send-test", {
+            method: "POST",
+            headers: authHeaders(),
+            body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        
+        if (!res.ok) throw new Error(data.error || "Failed to send test email");
+        
+        showToast("Test email sent! Check your inbox/spam folder. 📨", "success");
+        loadEmailLogs();
+    } catch (e) {
+        showToast(e.message, "error");
+    }
+}
+
+async function resendEmail(logId) {
+    showToast("Resending email...", "success");
+    try {
+        const res = await fetch(API + `/api/email-status/${logId}/resend`, {
+            method: "POST",
+            headers: authHeaders()
+        });
+        const data = await res.json();
+        
+        if (!res.ok) throw new Error(data.error || "Failed to resend email");
+        
+        showToast("Email resent successfully! 🚀", "success");
+        loadEmailLogs();
     } catch (e) {
         showToast(e.message, "error");
     }

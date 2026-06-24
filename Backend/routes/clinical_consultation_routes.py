@@ -151,6 +151,7 @@ def consult(current_user):
 
     # ── Send consultation summary email (background thread) ──────────────────
     # This runs in a daemon thread — it never blocks or breaks the API response.
+    # Delivery status is tracked in the email_logs table for verification.
     if EMAIL_SERVICE_AVAILABLE and current_user.email:
         try:
             dispatch_consultation_email(
@@ -163,6 +164,8 @@ def consult(current_user):
                 allergies            = current_user.known_allergies,
                 ai_assessment        = result.get("groq_response") or result.get("gemini_response"),
                 user_email           = current_user.email,
+                user_id              = current_user.id,
+                consultation_id      = consultation.id,
                 background           = True,   # fire-and-forget
             )
         except Exception as email_err:
