@@ -52,19 +52,12 @@ Before any AI call, the system scans the submitted symptoms for 25+ emergency ke
 - Approximate price range (₹)
 - Categories: Pain & Fever, Cold & Cough, Digestive, Allergy, First Aid, Pain Relief
 
-### 📧 Automated Email Consultation Summaries
-After every AI consultation, a professionally formatted plain-text email is automatically sent to the patient's registered Gmail address. The email includes:
-- Condition summary (qualified language — no certain diagnoses)
-- OTC medicine suggestions (allergy-checked)
-- Diet plan
-- Daily routine
-- Exercise recommendations
-- Hydration and sleep guidance
-- Things to avoid
-- Follow-up advice
-- Mandatory medical disclaimer
-
-Emails are sent in a **background daemon thread** — the consultation response returns to the frontend instantly without waiting for delivery.
+### 📧 Automated Email Consultation & Deliverability Diagnostics
+After every AI consultation, a professionally formatted HTML email is automatically dispatched to the patient's registered address using a non-blocking background daemon thread. Key enhancements include:
+- **Anti-Spam Optimization**: Layout refactored to standard, high-compatibility inline CSS tables ensuring perfect rendering in desktop/web clients (Gmail, Outlook, Yahoo) and bypassing spam classification rules.
+- **RFC 5322 Email Compliance**: Hardened headers (`Feedback-ID`, `Return-Path`, `List-Unsubscribe`, `X-Priority`) built-in to establish domain reliability and high sender reputation.
+- **Open-Tracking Pixel**: Employs a dynamic 1x1 transparent tracking GIF. When the user opens the email, the event logs the `opened_at` timestamp in the database.
+- **Delivery Status Dashboard**: Integrated directly inside the Reminders & Notifications page of the UI, displaying recipient address, delivery state (Queued, Delivered, Failed), sent time, open time, a **Send Test Email** trigger, and manual **Resend** utilities for failed/unreceived messages.
 
 ### 🔔 Free Multi-Channel Notification & Reminders
 A completely free, custom-built notification infrastructure (no Twilio required):
@@ -340,11 +333,13 @@ GROQ_MODEL=llama-3.3-70b-versatile
 # See "Gmail Email Setup" section below
 GMAIL_SENDER_ADDRESS=your_gmail@gmail.com
 GMAIL_APP_PASSWORD=xxxx xxxx xxxx xxxx
-GMAIL_SENDER_NAME=Medivio
+GMAIL_SENDER_NAME=Medivio Health
 GMAIL_SMTP_HOST=smtp.gmail.com
 GMAIL_SMTP_PORT=587
 GMAIL_SMTP_TIMEOUT=30
 GMAIL_SILENT_FAIL=True
+APP_BASE_URL=http://localhost:5000
+
 ```
 
 ### Variable Reference
@@ -484,7 +479,7 @@ Authorization: Bearer <your_jwt_token>
 }
 ```
 
-### Consultations
+### Consultations & Email Diagnostics
 
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
@@ -492,6 +487,10 @@ Authorization: Bearer <your_jwt_token>
 | `GET` | `/api/history` | ✅ | Get consultation history (paginated) |
 | `GET` | `/api/history/<id>` | ✅ | Get single consultation |
 | `DELETE` | `/api/history/<id>` | ✅ | Delete a consultation |
+| `GET` | `/api/email-status` | ✅ | Fetch email logs & status history |
+| `GET` | `/api/email-status/track/<log_id>.gif` | ❌ | Dynamic open-tracking pixel resolution |
+| `POST` | `/api/email-status/send-test` | ✅ | Trigger deliverability verification test |
+| `POST` | `/api/email-status/<log_id>/resend` | ✅ | Manually request a resend for an email |
 
 **Consult body:**
 ```json
