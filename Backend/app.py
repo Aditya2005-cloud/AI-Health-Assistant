@@ -65,6 +65,22 @@ def create_database_if_missing():
         raise
 
 
+def migrate_database_schema():
+    """Ensure database schema modifications are applied (e.g. adding opened_at to email_logs)."""
+    try:
+        from sqlalchemy import inspect
+        inspector = inspect(db.engine)
+        if 'email_logs' in inspector.get_table_names():
+            columns = [c['name'] for c in inspector.get_columns('email_logs')]
+            if 'opened_at' not in columns:
+                logger.info("[DB Migration] Adding 'opened_at' column to 'email_logs' table...")
+                with db.engine.begin() as conn:
+                    conn.execute(db.text("ALTER TABLE email_logs ADD COLUMN opened_at DATETIME NULL;"))
+                logger.info("[DB Migration] Column 'opened_at' added successfully.")
+    except Exception as e:
+        logger.error("[DB Migration] Failed to apply schema migrations: %s", e)
+
+
 # ─────────────────────────────────────────────
 # Step 2: Create Flask app
 # ─────────────────────────────────────────────
@@ -114,6 +130,7 @@ def create_app():
     # ── Create tables and seed data ──
     with app.app_context():
         db.create_all()
+        migrate_database_schema()
         seed_medicines()
         logger.info("[DB] All tables are ready.")
 

@@ -8,8 +8,8 @@ Design rules enforced in code:
   - 12 sections in exact mandated order
   - Emergency override short-circuits ALL other sections
   - Allergy conflicts checked before every medicine and food suggestion
-  - OTC / wellness suggestions only — no prescription-only medications
-  - No certain diagnoses — qualified language only ("may be", "could indicate")
+  - OTC / wellness suggestions only - no prescription-only medications
+  - No certain diagnoses - qualified language only ("may be", "could indicate")
   - Ends with exact verbatim legal disclaimer
 
 Public API:
@@ -64,195 +64,11 @@ _MEDICAL_DISCLAIMER = (
 
 _SEP = "-" * 60   # Section divider line for plain text
 
-# ── CSS Styling Constants for HTML Email ──────────────────────────────────────
-CSS_STYLE = """
-<style>
-    body {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        line-height: 1.6;
-        color: #334155;
-        background-color: #f8fafc;
-        margin: 0;
-        padding: 0;
-        -webkit-font-smoothing: antialiased;
-    }
-    .wrapper {
-        width: 100%;
-        max-width: 680px;
-        margin: 20px auto;
-        background-color: #ffffff;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        overflow: hidden;
-        border: 1px solid #e2e8f0;
-    }
-    .header {
-        background: linear-gradient(135deg, #0d9488, #0f766e);
-        padding: 30px 24px;
-        text-align: center;
-        color: #ffffff;
-    }
-    .logo-container {
-        display: inline-block;
-        background-color: rgba(255, 255, 255, 0.15);
-        padding: 10px;
-        border-radius: 50%;
-        margin-bottom: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.25);
-    }
-    .logo-svg {
-        width: 32px;
-        height: 32px;
-        vertical-align: middle;
-    }
-    .header h1 {
-        margin: 0;
-        font-size: 24px;
-        font-weight: 700;
-        letter-spacing: -0.5px;
-    }
-    .header p {
-        margin: 4px 0 0 0;
-        font-size: 14px;
-        color: #ccfbf1;
-        font-weight: 500;
-    }
-    .content {
-        padding: 30px 24px;
-    }
-    .intro-block {
-        background-color: #f1f5f9;
-        border-radius: 8px;
-        padding: 20px;
-        margin-bottom: 24px;
-        border-left: 4px solid #64748b;
-    }
-    .intro-block h3 {
-        margin: 0 0 12px 0;
-        color: #1e293b;
-        font-size: 16px;
-    }
-    .patient-details {
-        margin: 0;
-        padding: 0;
-        list-style: none;
-    }
-    .patient-details li {
-        margin-bottom: 6px;
-        font-size: 14px;
-    }
-    .patient-details strong {
-        color: #475569;
-        display: inline-block;
-        width: 90px;
-    }
-    .section-card {
-        background-color: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        padding: 20px;
-        margin-bottom: 20px;
-        border-left: 4px solid #0d9488;
-    }
-    .section-card.allergy-alert {
-        border-left-color: #eab308;
-        background-color: #fffbeb;
-        border-color: #fef08a;
-    }
-    .section-card.emergency {
-        border-left-color: #dc2626;
-        background-color: #fef2f2;
-        border-color: #fca5a5;
-    }
-    .section-title {
-        font-size: 16px;
-        font-weight: 700;
-        color: #0f766e;
-        margin: 0 0 12px 0;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    .section-card.allergy-alert .section-title {
-        color: #854d0e;
-    }
-    .section-card.emergency .section-title {
-        color: #991b1b;
-    }
-    .bullet-list {
-        margin: 0;
-        padding-left: 20px;
-    }
-    .bullet-list li {
-        margin-bottom: 8px;
-        font-size: 14px;
-    }
-    .pill {
-        display: inline-block;
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 12px;
-        font-weight: 600;
-        text-transform: uppercase;
-    }
-    .pill.low { background-color: #dcfce7; color: #15803d; }
-    .pill.moderate { background-color: #fef9c3; color: #854d0e; }
-    .pill.high { background-color: #fee2e2; color: #991b1b; }
-    .pill.emergency { background-color: #fecaca; color: #991b1b; }
-    
-    .med-item {
-        background-color: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 6px;
-        padding: 12px;
-        margin-bottom: 10px;
-    }
-    .med-item-title {
-        font-weight: 700;
-        color: #1e293b;
-        font-size: 14px;
-    }
-    .med-item-dosage {
-        font-size: 12px;
-        color: #64748b;
-        margin-top: 2px;
-    }
-    .med-item-warning {
-        font-size: 12px;
-        color: #b45309;
-        font-weight: 600;
-        background-color: #fef3c7;
-        padding: 4px 8px;
-        border-radius: 4px;
-        margin-top: 6px;
-        display: inline-block;
-    }
-    .disclaimer-box {
-        background-color: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        padding: 18px;
-        margin-top: 30px;
-        font-size: 12px;
-        color: #64748b;
-        text-align: center;
-        line-height: 1.5;
-    }
-    .disclaimer-title {
-        font-weight: 700;
-        color: #475569;
-        margin-bottom: 6px;
-        text-transform: uppercase;
-    }
-    .footer {
-        padding: 24px;
-        background-color: #f1f5f9;
-        text-align: center;
-        font-size: 12px;
-        color: #64748b;
-        border-top: 1px solid #e2e8f0;
-    }
-</style>
-"""
+# ── NOTE: All HTML styles are INLINED directly on elements ────────────────────
+# Gmail, Outlook, and Yahoo strip <style> blocks entirely. Using CSS classes
+# in emails causes them to render as unstyled plaintext (ugly) and triggers
+# spam filters (suspicious). All styles MUST be inline on every element.
+# This is the #1 production email deliverability best practice.
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -273,7 +89,7 @@ def _is_emergency(patient_data: dict) -> bool:
     for kw in _EMERGENCY_KEYWORDS:
         if kw in combined:
             logger.warning(
-                "[EmailTemplate] Emergency keyword '%s' detected — switching to emergency email.", kw
+                "[EmailTemplate] Emergency keyword '%s' detected - switching to emergency email.", kw
             )
             return True
     return False
@@ -284,7 +100,7 @@ def _build_emergency_email(patient_name: str) -> dict:
     Return ONLY an urgent short message. All other sections are skipped.
     Required by strict medical rules when emergency keywords are detected.
     """
-    subject = "URGENT — Please Seek Emergency Medical Care Immediately"
+    subject = "URGENT - Please Seek Emergency Medical Care Immediately"
 
     # Plain text version
     text_body = "\n".join([
@@ -300,56 +116,71 @@ def _build_emergency_email(patient_name: str) -> dict:
         "  3. Do NOT drive yourself.",
         "",
         "Do NOT wait for further AI advice, home remedies, or medications.",
-        "This situation requires in-person emergency care — not AI guidance.",
+        "This situation requires in-person emergency care - not AI guidance.",
         "",
         _SEP,
         _MEDICAL_DISCLAIMER,
     ])
 
-    # Colorful HTML version
+    # Colorful HTML version - fully inlined styles (no <style> block)
     html_body = f"""<!DOCTYPE html>
-<html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="utf-8">
-    {CSS_STYLE}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Emergency Medical Alert - Medivio</title>
 </head>
-<body>
-    <div class="wrapper">
-        <div class="header" style="background: linear-gradient(135deg, #dc2626, #b91c1c);">
-            <div class="logo-container" style="background-color: rgba(255, 255, 255, 0.2);">
-                <!-- Styled emergency cross icon -->
-                <svg class="logo-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M19 10.5H13.5V5C13.5 4.45 13.05 4 12.5 4H11.5C10.95 4 10.5 4.45 10.5 5V10.5H5C4.45 10.5 4 10.95 4 11.5V12.5C4 13.05 4.45 13.5 5 13.5H10.5V19C10.5 19.55 10.95 20 11.5 20H12.5C13.05 20 13.5 19.55 13.5 19V13.5H19C19.55 13.5 20 13.05 20 12.5V11.5C20 10.95 19.55 10.5 19 10.5Z" fill="#FFFFFF"/>
-                </svg>
-            </div>
-            <h1>EMERGENCY CARE REQUIRED</h1>
-            <p>Immediate Medical Action Advised</p>
-        </div>
-        <div class="content">
-            <div class="section-card emergency">
-                <h2 class="section-title">🚨 Action Required Immediately</h2>
-                <p>Dear <strong>{patient_name}</strong>,</p>
-                <p>Based on the symptom descriptors you provided, your condition may indicate a critical event requiring <strong>IMMEDIATE emergency care</strong>.</p>
-                <p><strong>Please take one of the following steps immediately:</strong></p>
-                <ul class="bullet-list">
-                    <li><strong>Call 112</strong> (National Emergency number) or <strong>102</strong> (Ambulance services) right away.</li>
-                    <li>Ask a family member, neighbor, or friend to drive you to the nearest Emergency Department.</li>
-                    <li><strong>Do not drive yourself</strong> to the hospital.</li>
-                </ul>
-                <p style="margin-top: 15px; font-weight: bold; color: #dc2626;">Do NOT wait for further AI advice, OTC medicines, or home remedies.</p>
-            </div>
-            
-            <div class="disclaimer-box">
-                <div class="disclaimer-title">Medical Disclaimer</div>
-                {_MEDICAL_DISCLAIMER}
-            </div>
-        </div>
-        <div class="footer">
-            Warm regards,<br>
-            <strong>Medivio Team</strong><br>
-            Automated Patient Alerts — Do not reply
-        </div>
-    </div>
+<body style="margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #334155; background-color: #f8fafc; -webkit-font-smoothing: antialiased;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc;">
+        <tr><td align="center" style="padding: 20px 10px;">
+            <table role="presentation" width="680" cellpadding="0" cellspacing="0" style="max-width: 680px; width: 100%; background-color: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0;">
+                <!-- HEADER -->
+                <tr>
+                    <td style="background: linear-gradient(135deg, #dc2626, #b91c1c); padding: 30px 24px; text-align: center; color: #ffffff;">
+                        <div style="display: inline-block; background-color: rgba(255,255,255,0.2); padding: 10px; border-radius: 50%; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.25);">
+                            <img src="https://img.icons8.com/ios-filled/32/ffffff/plus-math.png" alt="+" width="32" height="32" style="display: block;">
+                        </div>
+                        <h1 style="margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px; color: #ffffff;">EMERGENCY CARE REQUIRED</h1>
+                        <p style="margin: 4px 0 0 0; font-size: 14px; color: #fecaca; font-weight: 500;">Immediate Medical Action Advised</p>
+                    </td>
+                </tr>
+                <!-- CONTENT -->
+                <tr>
+                    <td style="padding: 30px 24px;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #fef2f2; border: 1px solid #fca5a5; border-left: 4px solid #dc2626; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+                            <tr><td style="padding: 20px;">
+                                <h2 style="font-size: 16px; font-weight: 700; color: #991b1b; margin: 0 0 12px 0; text-transform: uppercase; letter-spacing: 0.5px;">&#128680; Action Required Immediately</h2>
+                                <p style="font-size: 14px; color: #334155;">Dear <strong>{patient_name}</strong>,</p>
+                                <p style="font-size: 14px; color: #334155;">Based on the symptom descriptors you provided, your condition may indicate a critical event requiring <strong>IMMEDIATE emergency care</strong>.</p>
+                                <p style="font-size: 14px; color: #334155;"><strong>Please take one of the following steps immediately:</strong></p>
+                                <ul style="margin: 0; padding-left: 20px;">
+                                    <li style="margin-bottom: 8px; font-size: 14px; color: #334155;"><strong>Call 112</strong> (National Emergency number) or <strong>102</strong> (Ambulance services) right away.</li>
+                                    <li style="margin-bottom: 8px; font-size: 14px; color: #334155;">Ask a family member, neighbor, or friend to drive you to the nearest Emergency Department.</li>
+                                    <li style="margin-bottom: 8px; font-size: 14px; color: #334155;"><strong>Do not drive yourself</strong> to the hospital.</li>
+                                </ul>
+                                <p style="margin-top: 15px; font-weight: bold; color: #dc2626; font-size: 14px;">Do NOT wait for further AI advice, OTC medicines, or home remedies.</p>
+                            </td></tr>
+                        </table>
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 18px; margin-top: 30px;">
+                            <tr><td style="padding: 18px; text-align: center;">
+                                <div style="font-weight: 700; color: #475569; margin-bottom: 6px; text-transform: uppercase; font-size: 12px;">Medical Disclaimer</div>
+                                <p style="font-size: 12px; color: #64748b; line-height: 1.5; margin: 0;">{_MEDICAL_DISCLAIMER}</p>
+                            </td></tr>
+                        </table>
+                    </td>
+                </tr>
+                <!-- FOOTER -->
+                <tr>
+                    <td style="padding: 24px; background-color: #f1f5f9; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0;">
+                        Warm regards,<br>
+                        <strong>Medivio Team</strong><br>
+                        Automated Patient Alerts - Do not reply
+                    </td>
+                </tr>
+            </table>
+        </td></tr>
+    </table>
 </body>
 </html>
 """
@@ -402,8 +233,8 @@ def _build_condition_summary(ai_assessment: str, symptoms: str) -> tuple:
 
     # 2. HTML
     html = f"""
-    <div class="section-card">
-        <h2 class="section-title">🩺 Condition Summary</h2>
+    <div style="margin-bottom:24px;padding:20px;background-color:#ffffff;border:1px solid #e2e8f0;border-left:4px solid #0d9488;border-radius:8px;">
+        <h2 style="margin:0 0 14px 0;font-size:17px;font-weight:700;color:#0f766e;letter-spacing:-0.3px;">🩺 Condition Summary</h2>
         <p>Based on the symptoms you reported, this may indicate the following:</p>
         <p style="background-color: #f8fafc; padding: 15px; border-radius: 6px; border: 1px solid #e2e8f0; font-style: italic; color: #1e293b;">
             "{body_text}"
@@ -439,8 +270,8 @@ def _build_medicine_section(ai_assessment: str, medical_history: str, allergies:
 
     # HTML setup
     html_header = """
-    <div class="section-card">
-        <h2 class="section-title">💊 Medicine Suggestions (OTC Only)</h2>
+    <div style="margin-bottom:24px;padding:20px;background-color:#ffffff;border:1px solid #e2e8f0;border-left:4px solid #0d9488;border-radius:8px;">
+        <h2 style="margin:0 0 14px 0;font-size:17px;font-weight:700;color:#0f766e;letter-spacing:-0.3px;">💊 Medicine Suggestions (OTC Only)</h2>
         <p style="font-size: 13px; color: #64748b; margin-bottom: 15px;">
             The following list highlights common over-the-counter (OTC) support products related to your described symptoms. <strong>These are NOT prescriptions.</strong> Verify all choices with a doctor or pharmacist.
         </p>
@@ -458,8 +289,8 @@ def _build_medicine_section(ai_assessment: str, medical_history: str, allergies:
         ("acidity",     "Antacid such as Digene or Gelusil MPS (chewed after meals)", "Plain cold milk in small sips"),
         ("indigestion", "Pudin Hara capsules (after meals)",                       "Ajwain (carom seeds) with warm water"),
         ("nausea",      "ORS (Electral) to replace lost fluids",                   "Ginger tea in small sips"),
-        ("diarrhea",    "ORS (Electral) — one sachet dissolved in 1 litre of water", "Coconut water for hydration"),
-        ("allergic",    "Cetirizine 10mg (e.g. Cetzine) — non-drowsy option: Fexofenadine (Allegra 120)", "Consult your doctor if allergy is severe"),
+        ("diarrhea",    "ORS (Electral) - one sachet dissolved in 1 litre of water", "Coconut water for hydration"),
+        ("allergic",    "Cetirizine 10mg (e.g. Cetzine) - non-drowsy option: Fexofenadine (Allegra 120)", "Consult your doctor if allergy is severe"),
         ("congestion",  "Saline nasal drops (available without prescription)",     "Steam inhalation with hot water"),
         ("muscle",      "Topical pain relief gel (e.g. Moov or Volini spray)",     "Warm compress on the affected area"),
     ]
@@ -484,12 +315,12 @@ def _build_medicine_section(ai_assessment: str, medical_history: str, allergies:
                 )
                 # HTML
                 html_items.append(f"""
-                <div class="med-item" style="border-left: 3px solid #eab308; background-color: #fffbeb;">
-                    <div class="med-item-title" style="color: #854d0e;">⚠️ Allergy Conflict Detected</div>
-                    <div class="med-item-dosage" style="margin-top: 4px; color: #a16207;">
+                <div style="margin-bottom:10px;padding:12px;border:1px solid #e2e8f0;border-left:3px solid #eab308;border-radius:6px;background-color:#fffbeb;">
+                    <div style="font-weight:700;font-size:14px;color:#1e293b;" style="color: #854d0e;">⚠️ Allergy Conflict Detected</div>
+                    <div style="font-size:13px;color:#64748b;margin-top:4px;" style="margin-top: 4px; color: #a16207;">
                         "{medicine}" was flagged as matching your allergy profile.
                     </div>
-                    <div class="med-item-warning">Suggested Allergy-Safe Option: {alternative}</div>
+                    <div style="font-size:13px;color:#dc2626;margin-top:6px;font-weight:600;">Suggested Allergy-Safe Option: {alternative}</div>
                 </div>
                 """)
             else:
@@ -499,9 +330,9 @@ def _build_medicine_section(ai_assessment: str, medical_history: str, allergies:
                 
                 # HTML
                 html_items.append(f"""
-                <div class="med-item">
-                    <div class="med-item-title">🔹 {medicine}</div>
-                    <div class="med-item-dosage">Dosage: As recommended by doctor/pharmacist. Do not exceed suggested packaging instructions.</div>
+                <div style="margin-bottom:10px;padding:12px;border:1px solid #e2e8f0;border-left:3px solid #0d9488;border-radius:6px;background-color:#f8fafc;">
+                    <div style="font-weight:700;font-size:14px;color:#1e293b;">🔹 {medicine}</div>
+                    <div style="font-size:13px;color:#64748b;margin-top:4px;">Dosage: As recommended by doctor/pharmacist. Do not exceed suggested packaging instructions.</div>
                 </div>
                 """)
 
@@ -535,10 +366,10 @@ def _build_diet_plan(allergies: str) -> tuple:
     ]
 
     html_header = """
-    <div class="section-card">
-        <h2 class="section-title">🥗 Diet Plan</h2>
+    <div style="margin-bottom:24px;padding:20px;background-color:#ffffff;border:1px solid #e2e8f0;border-left:4px solid #0d9488;border-radius:8px;">
+        <h2 style="margin:0 0 14px 0;font-size:17px;font-weight:700;color:#0f766e;letter-spacing:-0.3px;">🥗 Diet Plan</h2>
         <p style="font-size: 13px; color: #64748b; margin-bottom: 12px;">Suggested nutrition guidelines for recovery:</p>
-        <ul class="bullet-list" style="margin-bottom: 15px;">
+        <ul style="padding-left:20px;margin:0 0 15px 0;line-height:1.8;font-size:14px;color:#334155;">
     """
     html_items = []
 
@@ -571,7 +402,7 @@ def _build_diet_plan(allergies: str) -> tuple:
     html_limit_section = """
         </ul>
         <p style="font-size: 14px; font-weight: 700; color: #475569; margin: 15px 0 6px 0;">🚫 Foods to Limit:</p>
-        <ul class="bullet-list" style="color: #64748b;">
+        <ul style="padding-left:20px;margin:0;line-height:1.8;font-size:14px;color:#64748b;">
             <li>Spicy, deep-fried, or oily meals</li>
             <li>Alcohol, coffee, and energy drinks</li>
             <li>Raw/unwashed produce (ensure everything is fully cooked)</li>
@@ -615,8 +446,8 @@ def _build_daily_routine() -> tuple:
     ])
 
     html = """
-    <div class="section-card">
-        <h2 class="section-title">⏰ Daily Routine</h2>
+    <div style="margin-bottom:24px;padding:20px;background-color:#ffffff;border:1px solid #e2e8f0;border-left:4px solid #0d9488;border-radius:8px;">
+        <h2 style="margin:0 0 14px 0;font-size:17px;font-weight:700;color:#0f766e;letter-spacing:-0.3px;">⏰ Daily Routine</h2>
         <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 10px;">
             <tr style="border-bottom: 1px solid #f1f5f9;">
                 <td style="padding: 10px 0; font-weight: 700; color: #475569; width: 100px; vertical-align: top;">🌅 Morning</td>
@@ -664,8 +495,8 @@ def _build_exercise_section(ai_assessment: str) -> tuple:
             "  Resume regular exercise only after getting clearance from your doctor.",
         ]
         html_advice = """
-        <p><strong>Recommended activity level: <span class="pill low">Rest Required</span></strong></p>
-        <ul class="bullet-list" style="margin-top: 10px; color: #64748b;">
+        <p><strong>Recommended activity level: <span style="display:inline-block;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;background-color:#fee2e2;color:#991b1b;">Rest Required</span></strong></p>
+        <ul style="padding-left:20px;margin:10px 0 0 0;line-height:1.8;font-size:14px;color:#64748b;">
             <li>Your body needs rest more than active exercise to rebuild defenses.</li>
             <li>Avoid heavy workouts, cardiovascular exercise, or lifting.</li>
             <li>Acceptable: light static stretches in bed or extremely short slow room walks.</li>
@@ -681,8 +512,8 @@ def _build_exercise_section(ai_assessment: str) -> tuple:
             "  Stop immediately if you feel dizzy, short of breath, or in pain.",
         ]
         html_advice = """
-        <p><strong>Recommended activity level: <span class="pill moderate">Light Activity</span></strong></p>
-        <ul class="bullet-list" style="margin-top: 10px; color: #64748b;">
+        <p><strong>Recommended activity level: <span style="display:inline-block;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;background-color:#fef3c7;color:#92400e;">Light Activity</span></strong></p>
+        <ul style="padding-left:20px;margin:10px 0 0 0;line-height:1.8;font-size:14px;color:#64748b;">
             <li>Gentle walking: 15-20 minutes at an easy, conversational pace.</li>
             <li>Low-impact stretching or gentle yoga: 10-15 minutes.</li>
             <li>Diaphragmatic breathing / Pranayama: 5-10 minutes to support lungs.</li>
@@ -699,8 +530,8 @@ def _build_exercise_section(ai_assessment: str) -> tuple:
             "  Always warm up before and cool down after exercise.",
         ]
         html_advice = """
-        <p><strong>Recommended activity level: <span class="pill low" style="background-color: #dbeafe; color: #1e40af;">Moderate Activity</span></strong></p>
-        <ul class="bullet-list" style="margin-top: 10px; color: #64748b;">
+        <p><strong>Recommended activity level: <span style="display:inline-block;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;background-color:#fee2e2;color:#991b1b;" style="background-color: #dbeafe; color: #1e40af;">Moderate Activity</span></strong></p>
+        <ul style="padding-left:20px;margin:10px 0 0 0;line-height:1.8;font-size:14px;color:#64748b;">
             <li>Brisk walking: 20-30 minutes daily is suitable.</li>
             <li>Yoga, Pilates, or bodyweight stretches.</li>
             <li>Avoid heavy weights or high-intensity interval training (HIIT).</li>
@@ -715,8 +546,8 @@ def _build_exercise_section(ai_assessment: str) -> tuple:
     ] + text_advice)
 
     html = f"""
-    <div class="section-card">
-        <h2 class="section-title">🏃 Exercise Recommendations</h2>
+    <div style="margin-bottom:24px;padding:20px;background-color:#ffffff;border:1px solid #e2e8f0;border-left:4px solid #0d9488;border-radius:8px;">
+        <h2 style="margin:0 0 14px 0;font-size:17px;font-weight:700;color:#0f766e;letter-spacing:-0.3px;">🏃 Exercise Recommendations</h2>
         {html_advice}
     </div>
     """
@@ -742,9 +573,9 @@ def _build_hydration_section() -> tuple:
     ])
 
     html = """
-    <div class="section-card">
-        <h2 class="section-title">💧 Hydration Guidance</h2>
-        <ul class="bullet-list" style="color: #334155;">
+    <div style="margin-bottom:24px;padding:20px;background-color:#ffffff;border:1px solid #e2e8f0;border-left:4px solid #0d9488;border-radius:8px;">
+        <h2 style="margin:0 0 14px 0;font-size:17px;font-weight:700;color:#0f766e;letter-spacing:-0.3px;">💧 Hydration Guidance</h2>
+        <ul style="padding-left:20px;margin:0;line-height:1.8;font-size:14px;color:#334155;">
             <li><strong>Daily Intake:</strong> Aim for 8 to 10 glasses (approximately 2 to 2.5 liters) of clean water.</li>
             <li><strong>Electrolytes:</strong> If dealing with fever or vomiting, substitute 1-2 glasses with coconut water or ORS (Oral Rehydration Salts).</li>
             <li><strong>Soothe:</strong> Sip warm water with fresh lemon juice and honey to help ease upper respiratory tract dryness.</li>
@@ -775,9 +606,9 @@ def _build_sleep_section() -> tuple:
     ])
 
     html = """
-    <div class="section-card">
-        <h2 class="section-title">💤 Sleep Recommendations</h2>
-        <ul class="bullet-list" style="color: #334155;">
+    <div style="margin-bottom:24px;padding:20px;background-color:#ffffff;border:1px solid #e2e8f0;border-left:4px solid #0d9488;border-radius:8px;">
+        <h2 style="margin:0 0 14px 0;font-size:17px;font-weight:700;color:#0f766e;letter-spacing:-0.3px;">💤 Sleep Recommendations</h2>
+        <ul style="padding-left:20px;margin:0;line-height:1.8;font-size:14px;color:#334155;">
             <li><strong>Duration:</strong> Target 7 to 9 hours of continuous sleep to maximize natural recovery cycles.</li>
             <li><strong>Environment:</strong> Keep the bedroom cool, dark, and clear of ambient noises.</li>
             <li><strong>Positioning:</strong> If congested or coughing, elevate your head slightly using an extra pillow.</li>
@@ -799,7 +630,7 @@ def _build_things_to_avoid(allergies: str) -> tuple:
         "To support your recovery and prevent worsening symptoms, please avoid:",
         "",
         "  - Self-medicating with prescription-only drugs",
-        "  - Ignoring worsening symptoms — seek medical attention promptly",
+        "  - Ignoring worsening symptoms - seek medical attention promptly",
         "  - Sharing food, utensils, or personal items while unwell",
         "  - Smoking or exposure to second-hand smoke",
         "  - Alcohol while unwell or on any medication",
@@ -809,9 +640,9 @@ def _build_things_to_avoid(allergies: str) -> tuple:
     ]
 
     html_header = """
-    <div class="section-card" style="border-left-color: #64748b;">
-        <h2 class="section-title" style="color: #475569;">⚠️ Things to Avoid</h2>
-        <ul class="bullet-list" style="color: #334155;">
+    <div style="margin-bottom:24px;padding:20px;background-color:#ffffff;border:1px solid #e2e8f0;border-left:4px solid #0d9488;border-radius:8px;" style="border-left-color: #64748b;">
+        <h2 style="margin:0 0 14px 0;font-size:17px;font-weight:700;color:#0f766e;letter-spacing:-0.3px;" style="color: #475569;">⚠️ Things to Avoid</h2>
+        <ul style="padding-left:20px;margin:0;line-height:1.8;font-size:14px;color:#334155;">
             <li><strong>Self-medicating</strong> with prescription-only drugs (antibiotics, steroids) without explicit doctor advice.</li>
             <li>Ignoring signs of deterioration (refer to the Follow-up section below).</li>
             <li>Smoking or using tobacco; avoid environments with secondary smoke.</li>
@@ -867,8 +698,8 @@ def _build_followup_section(patient_name: str) -> tuple:
     ])
 
     html = f"""
-    <div class="section-card" style="border-left-color: #0f766e;">
-        <h2 class="section-title">📋 Follow-up Escalation Guidelines</h2>
+    <div style="margin-bottom:24px;padding:20px;background-color:#ffffff;border:1px solid #e2e8f0;border-left:4px solid #0d9488;border-radius:8px;" style="border-left-color: #0f766e;">
+        <h2 style="margin:0 0 14px 0;font-size:17px;font-weight:700;color:#0f766e;letter-spacing:-0.3px;">📋 Follow-up Escalation Guidelines</h2>
         <p>Dear <strong>{patient_name}</strong>, monitor your condition closely. Seek professional medical evaluation under the following parameters:</p>
         
         <table style="width: 100%; font-size: 13.5px; border-collapse: collapse; margin-top: 10px;">
@@ -940,7 +771,7 @@ def build_consultation_email(patient_data: dict) -> dict:
 
     # ── Normal consultation email ─────────────────────────────────────────────
     now     = datetime.now().strftime("%d %B %Y at %I:%M %p")
-    subject = f"Your Medivio Consultation Summary — {now}"
+    subject = f"Your Medivio Consultation Summary - {now}"
 
     # We build both Plain Text (fallback) and HTML lists
     text_sections = []
@@ -963,17 +794,17 @@ def build_consultation_email(patient_data: dict) -> dict:
         "professional before taking any action.",
     ]))
 
-    # HTML
+    # HTML - ALL styles must be inline (Gmail/Outlook/Yahoo strip <style> blocks)
     html_greeting = f"""
-    <div class="intro-block">
-        <h3>Dear <strong>{patient_name}</strong>,</h3>
+    <div style="margin-bottom: 24px; padding: 20px; background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;">
+        <h3 style="margin: 0 0 10px 0; font-size: 18px; color: #1e293b;">Dear <strong>{patient_name}</strong>,</h3>
         <p style="margin: 0 0 15px 0; font-size: 14.5px; color: #475569;">
             Thank you for completing your digital case intake. Below is the advisory protocol validated by our Medical Consultation Board.
         </p>
-        <ul class="patient-details">
-            <li><strong>Patient Name:</strong> {patient_name}</li>
-            <li><strong>Age / Gender:</strong> {age} / {gender}</li>
-            <li><strong>Logged At:</strong> {now}</li>
+        <ul style="list-style: none; padding: 0; margin: 0;">
+            <li style="padding: 6px 0; font-size: 14px; color: #334155; border-bottom: 1px solid #e2e8f0;"><strong>Patient Name:</strong> {patient_name}</li>
+            <li style="padding: 6px 0; font-size: 14px; color: #334155; border-bottom: 1px solid #e2e8f0;"><strong>Age / Gender:</strong> {age} / {gender}</li>
+            <li style="padding: 6px 0; font-size: 14px; color: #334155;"><strong>Logged At:</strong> {now}</li>
         </ul>
     </div>
     """
@@ -1036,10 +867,12 @@ def build_consultation_email(patient_data: dict) -> dict:
     
     # HTML
     html_disclaimer = f"""
-    <div class="disclaimer-box">
-        <div class="disclaimer-title">Medical Disclaimer</div>
-        {_MEDICAL_DISCLAIMER}
-    </div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin-top: 30px;">
+        <tr><td style="padding: 18px; text-align: center;">
+            <div style="font-weight: 700; color: #475569; margin-bottom: 6px; text-transform: uppercase; font-size: 12px;">Medical Disclaimer</div>
+            <p style="font-size: 12px; color: #64748b; line-height: 1.5; margin: 0;">{_MEDICAL_DISCLAIMER}</p>
+        </td></tr>
+    </table>
     """
     html_sections.append(html_disclaimer)
 
@@ -1049,42 +882,50 @@ def build_consultation_email(patient_data: dict) -> dict:
         "",
         "Warm regards,",
         "Medivio Team",
-        "(Automated System — Please do not reply to this email)",
+        "(Automated System - Please do not reply to this email)",
     ]))
 
     # Combine Plain Text
     full_text_body = "\n".join(text_sections)
 
-    # Combine HTML Body
+    # Combine HTML Body - FULLY INLINE (no <style> block, no CSS classes, no SVG)
+    # Gmail/Outlook/Yahoo strip <style> blocks. Table layout for Outlook Word renderer.
     full_html_body = f"""<!DOCTYPE html>
-<html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Medivio Consultation Summary</title>
-    {CSS_STYLE}
 </head>
-<body>
-    <div class="wrapper">
-        <div class="header">
-            <div class="logo-container">
-                <!-- Clean, medical cross svg icon -->
-                <svg class="logo-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M19 10.5H13.5V5C13.5 4.45 13.05 4 12.5 4H11.5C10.95 4 10.5 4.45 10.5 5V10.5H5C4.45 10.5 4 10.95 4 11.5V12.5C4 13.05 4.45 13.5 5 13.5H10.5V19C10.5 19.55 10.95 20 11.5 20H12.5C13.05 20 13.5 19.55 13.5 19V13.5H19C19.55 13.5 20 13.05 20 12.5V11.5C20 10.95 19.55 10.5 19 10.5Z" fill="#FFFFFF"/>
-                </svg>
-            </div>
-            <h1>Medivio</h1>
-            <p>Case Assessment & Consultation Board</p>
-        </div>
-        <div class="content">
-            {"".join(html_sections)}
-        </div>
-        <div class="footer">
-            Warm regards,<br>
-            <strong>Medivio Team</strong><br>
-            Automated Clinical Report — Please do not reply directly to this mail.
-        </div>
-    </div>
+<body style="margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;line-height:1.6;color:#334155;background-color:#f8fafc;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f8fafc;">
+        <tr><td align="center" style="padding:20px 10px;">
+            <table role="presentation" width="680" cellpadding="0" cellspacing="0" style="max-width:680px;width:100%;background-color:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;">
+                <tr>
+                    <td style="background:linear-gradient(135deg,#0f766e,#0d9488);padding:30px 24px;text-align:center;color:#ffffff;">
+                        <div style="display:inline-block;background-color:rgba(255,255,255,0.2);padding:10px 14px;border-radius:50%;margin-bottom:12px;border:1px solid rgba(255,255,255,0.25);">
+                            <span style="font-size:28px;font-weight:700;color:#ffffff;">&#43;</span>
+                        </div>
+                        <h1 style="margin:0;font-size:24px;font-weight:700;letter-spacing:-0.5px;color:#ffffff;">Medivio</h1>
+                        <p style="margin:4px 0 0 0;font-size:14px;color:#ccfbf1;font-weight:500;">Case Assessment &amp; Consultation Board</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:30px 24px;">
+                        {"".join(html_sections)}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:24px;background-color:#f1f5f9;text-align:center;font-size:12px;color:#64748b;border-top:1px solid #e2e8f0;">
+                        Warm regards,<br>
+                        <strong>Medivio Team</strong><br>
+                        Automated Clinical Report - Please do not reply directly to this mail.
+                    </td>
+                </tr>
+            </table>
+        </td></tr>
+    </table>
 </body>
 </html>
 """
